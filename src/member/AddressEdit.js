@@ -27,29 +27,52 @@ export default class AddressEdit extends React.Component {
       reveiptPerson: "",
       remark: "",
       currentSelections: "",
-      orgName: "",
+      // orgName: "",
     }
   }
 
   componentDidMount() {
     DeviceEventEmitter.addListener("BackToAddressEdit", () => {
       // 接收到 update 页发送的通知，后进行的操作内容
-      this.getData()
+      this.loadData()
     })
 
-    this.getData()
+    if (this.props.isReturn) {
+      this.loadData()
+    }
+    else {
+      this.getData()
+    }
+  }
+
+  async loadData() {
+    this.setState({
+      currentSelections:
+      (await fkg.getAppItem("province")) +
+      "/" +
+      (await fkg.getAppItem("regionLevelOne")) +
+      "/" +
+      (await fkg.getAppItem("regionLevelTwo")) +
+      "/" +
+      (await fkg.getAppItem("regionLevelThree")) +
+      "/" +
+      (await fkg.getAppItem("regionLevelFour")),
+      detailAddress: await fkg.getAppItem("detailAddress"),
+      reveiptPhone: await fkg.getAppItem("reveiptPhone"),
+      reveiptPerson: await fkg.getAppItem("reveiptPerson"),
+      remark: await fkg.getAppItem("remark"),
+      // orgName: await fkg.getAppItem("orgName"),
+    })
   }
 
   async getData() {
+
     if (!this.props.isAdd) {
       try {
         let formData = {id: this.props.id}
-        let token = await fkg.getAppItem("currUserId")
-        util.log(formData)
 
         let userType = "member"
         if (!this.props.isMember) userType = "organization"
-        util.log(userType)
 
         let response = await HTTP._fetch(
           HTTP.GET({
@@ -81,6 +104,12 @@ export default class AddressEdit extends React.Component {
               reveiptPhone: responseJson.body.reveiptPhone,
               remark: responseJson.body.remark,
               orgName: responseJson.body.orgName,
+              currentSelections:
+              responseJson.body.region1Name + "/" +
+              responseJson.body.region2Name + "/" +
+              responseJson.body.region3Name + "/" +
+              responseJson.body.region4Name + "/" +
+              responseJson.body.region5Name
             })
           }
           else
@@ -94,21 +123,6 @@ export default class AddressEdit extends React.Component {
         util.toastLong(error)
       }
     }
-
-    if ((await fkg.getAppItem("regionId")) != null) {
-      this.setState({
-        currentSelections:
-        (await fkg.getAppItem("province")) +
-        "/" +
-        (await fkg.getAppItem("regionLevelOne")) +
-        "/" +
-        (await fkg.getAppItem("regionLevelTwo")) +
-        "/" +
-        (await fkg.getAppItem("regionLevelThree")) +
-        "/" +
-        (await fkg.getAppItem("regionLevelFour"))
-      })
-    }
   }
 
   async confirm() {
@@ -116,6 +130,15 @@ export default class AddressEdit extends React.Component {
 
     let userType = "member"
     if (this.props.isMember) {
+      if (this.state.remark === "" || this.state.reveiptPerson === "" || this.state.reveiptPhone === "" || this.state.detailAddress === "") {
+        util.toastLong('输入值不能为空')
+        return
+      }
+      else if(await fkg.getAppItem("regionId") === undefined){
+        util.toastLong('地址不能为空')
+        return
+      }
+
       formData = {
         memberId: await fkg.getAppItem("currUserId"),
         regionId: await fkg.getAppItem("regionId"),
@@ -125,9 +148,18 @@ export default class AddressEdit extends React.Component {
         detailAddress: this.state.detailAddress
       }
     } else {
+      if (this.state.remark === "" || this.state.reveiptPerson === "" || this.state.reveiptPhone === "" || this.state.detailAddress === "" || this.state.orgName === "") {
+        util.toastLong('输入值不能为空')
+        return
+      }
+      else if(await fkg.getAppItem("regionId") === undefined){
+        util.toastLong('地址不能为空')
+        return
+      }
+
       formData = {
         orgId: await fkg.getAppItem("currOrgId"),
-        orgName: this.state.orgName,
+        orgName: await fkg.getAppItem("currOrgId"),
         regionId: await fkg.getAppItem("regionId"),
         remark: this.state.remark,
         reveiptPerson: this.state.reveiptPerson,
@@ -140,6 +172,7 @@ export default class AddressEdit extends React.Component {
     let type = "create"
     if (!this.props.isAdd) {
       type = "update"
+      formData.id = this.props.id
     }
 
     try {
@@ -157,9 +190,49 @@ export default class AddressEdit extends React.Component {
 
       if (response.status === 200) {
         let responseJson = await response.json()
-        if (responseJson.message === "操作成功")
+        if (responseJson.message === "操作成功") {
           Navigation.pop(this.props.componentId)
-        else util.toastLong(responseJson.message)
+          // Navigation.push(this.props.componentId, {
+          //   //Use your stack Id instead of this.pros.componentId
+          //   component: {
+          //     name: "AddressList",
+          //     passProps: {
+          //       params: {
+          //         isMember: this.props.isMember
+          //       }
+          //     },
+          //     options: {
+          //       topBar: {
+          //         visible: true,
+          //         drawBehind: false,
+          //         animate: false
+          //       },
+          //       bottomTabs: {
+          //         visible: false,
+          //         drawBehind: true,
+          //         animate: true
+          //       }
+          //     }
+          //   }
+          // });
+        }
+        else {
+          // util.toastLong(responseJson.message)
+          // util.toastLong(responseJson.body)
+
+          if (responseJson.body.reveiptPerson !== undefined) {
+            util.toastLong("收货人姓名"+responseJson.body.reveiptPerson)
+          }
+          else if (responseJson.body.reveiptPhone !== undefined) {
+            util.toastLong("手机号码"+responseJson.body.reveiptPhone)
+          }
+          else if (responseJson.body.detailAddress !== undefined) {
+            util.toastLong("详细地址"+responseJson.body.detailAddress)
+          }
+          else if (responseJson.body.orgName !== undefined) {
+            util.toastLong("机构名称"+responseJson.body.orgName)
+          }
+        }
       } else {
         util.toastLong("网络故障")
       }
@@ -172,30 +245,30 @@ export default class AddressEdit extends React.Component {
     return (
       <View style={styles.flex}>
         <View style={styles.cardView}>
-          {this.props.isMember
-            ? []
-            : [
-              <View style={styles.viewBoxStyle}>
-                <View style={styles.flexStyle}>
-                  <Text style={styles.titles}>机构名</Text>
-                </View>
-                <TextInput
-                  style={[styles.textInputStyle]}
-                  placeholder="请输入机构名"
-                  value={this.state.orgName}
-                  onChangeText={text => {
-                    this.setState({orgName: text})
-                  }}
-                />
-              </View>,
-              <View
-                style={{
-                  borderBottomColor: "#eeee",
-                  borderBottomWidth: 1,
-                  width: util.width
-                }}
-              />
-            ]}
+          {/*{this.props.isMember*/}
+            {/*? []*/}
+            {/*: [*/}
+              {/*<View style={styles.viewBoxStyle}>*/}
+                {/*<View style={styles.flexStyle}>*/}
+                  {/*<Text style={styles.titles}>机构名</Text>*/}
+                {/*</View>*/}
+                {/*<TextInput*/}
+                  {/*style={[styles.textInputStyle]}*/}
+                  {/*placeholder="请输入机构名"*/}
+                  {/*value={this.state.orgName}*/}
+                  {/*onChangeText={text => {*/}
+                    {/*this.setState({orgName: text})*/}
+                  {/*}}*/}
+                {/*/>*/}
+              {/*</View>,*/}
+              {/*<View*/}
+                {/*style={{*/}
+                  {/*borderBottomColor: "#eeee",*/}
+                  {/*borderBottomWidth: 1,*/}
+                  {/*width: util.width*/}
+                {/*}}*/}
+              {/*/>*/}
+            {/*]}*/}
 
           <View style={styles.viewBoxStyle}>
             <View style={styles.flexStyle}>
@@ -267,11 +340,21 @@ export default class AddressEdit extends React.Component {
           <TouchableOpacity
             style={styles.viewBoxStyle}
             onPress={() => {
-              // fkg.setAppItem("parentId", 8)
-              util.log("jjjjjjjj")
+              fkg.setAppItem("detailAddress", this.state.detailAddress)
+              fkg.setAppItem("reveiptPhone", this.state.reveiptPhone)
+              fkg.setAppItem("reveiptPerson", this.state.reveiptPerson)
+              fkg.setAppItem("remark", this.state.remark)
+              fkg.setAppItem("orgName", this.state.orgName)
+
               Navigation.push(this.props.componentId, {
                 component: {
                   name: "RegionSelection",
+                  passProps: {
+                    id: this.props.id,
+                    isAdd: this.props.isAdd,
+                    isMember: this.props.isMember,
+                    fatherComponentId: this.props.componentId
+                  },
                   options: {
                     topBar: {
                       visible: true,
@@ -296,10 +379,21 @@ export default class AddressEdit extends React.Component {
               placeholder=">"
               value={this.state.currentSelections}
               onFocus={() => {
-                util.log("jjjjjjjj")
+                fkg.setAppItem("detailAddress", this.state.detailAddress)
+                fkg.setAppItem("reveiptPhone", this.state.reveiptPhone)
+                fkg.setAppItem("reveiptPerson", this.state.reveiptPerson)
+                fkg.setAppItem("remark", this.state.remark)
+                // fkg.setAppItem("orgName", this.state.orgName)
+
                 Navigation.push(this.props.componentId, {
                   component: {
                     name: "RegionSelection",
+                    passProps: {
+                      id: this.props.id,
+                      isAdd: this.props.isAdd,
+                      isMember: this.props.isMember,
+                      fatherComponentId: this.props.componentId
+                    },
                     options: {
                       topBar: {
                         visible: true,

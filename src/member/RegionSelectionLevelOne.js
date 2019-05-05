@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 import {
   Text,
   View,
@@ -9,25 +9,24 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal
-} from "react-native";
-import util from "../common/Const";
-import HTTP from "../common/HTTPmethod";
-import fkg from "../common/Util";
-import { Navigation } from "react-native-navigation";
+} from "react-native"
+import util from "../common/Const"
+import HTTP from "../common/HTTPmethod"
+import fkg from "../common/Util"
+import {Navigation} from "react-native-navigation"
 
 export default class RegionSelectionLevelOne extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     this.state = {
-      regions: [
-      ],
+      regions: [],
       currentSelections: ""
-    };
+    }
   }
 
   componentDidMount() {
-    this.getData();
+    this.getData()
   }
 
   render() {
@@ -47,13 +46,19 @@ export default class RegionSelectionLevelOne extends React.Component {
         {this.state.regions.map(item => (
           <View>
             <TouchableOpacity
-              style={{ backgroundColor: "#f8f8f8" }}
+              style={{backgroundColor: "#f8f8f8"}}
               onPress={() => {
-                fkg.setAppItem("parentId", item.id);
-                fkg.setAppItem("regionLevelOne", item.regionFullName);
+                fkg.setAppItem("parentId", item.id)
+                fkg.setAppItem("regionLevelOne", item.regionFullName)
                 Navigation.push(this.props.componentId, {
                   component: {
                     name: "RegionSelectionLevelTwo",
+                    passProps: {
+                      id: this.props.id,
+                      isAdd: this.props.isAdd,
+                      isMember: this.props.isMember,
+                      fatherComponentId: this.props.fatherComponentId
+                    },
                     options: {
                       topBar: {
                         visible: true,
@@ -67,7 +72,7 @@ export default class RegionSelectionLevelOne extends React.Component {
                       }
                     }
                   }
-                });
+                })
               }}
             >
               <Text
@@ -91,34 +96,34 @@ export default class RegionSelectionLevelOne extends React.Component {
           </View>
         ))}
       </View>
-    );
+    )
   }
 
   async getData() {
     try {
       this.setState({
         currentSelections: await fkg.getAppItem("province")
-      });
+      })
       let formData = {
         parentId: await fkg.getAppItem("parentId")
-      };
+      }
       let response = await HTTP._fetch(
         HTTP.POST({
           url: "/sys/region/search",
           formData
         })
-      );
+      )
 
       if (response.status === 200) {
-        let responseJson = await response.json();
+        let responseJson = await response.json()
         this.setState({
           regions: responseJson.body
-        });
+        })
       } else {
-        util.toastLong("网络故障");
+        util.toastLong("网络故障")
       }
     } catch (error) {
-      util.toastLong(error);
+      util.toastLong(error)
     }
   }
 }
@@ -201,4 +206,4 @@ const styles = StyleSheet.create({
   hidemodalTxt: {
     marginTop: 10
   }
-});
+})

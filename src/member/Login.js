@@ -85,14 +85,17 @@ class Login extends Component {
       const code = result.code;
       if (code == fkg.CODE_COMM_0_SUCCESS) {
         //handler result here
-        const res = await fkg.setAppItem("currUserId", result.body.currUserId);
+        await fkg.setAppItem("currUserName", result.body.currUserName);
+        await fkg.setAppItem("currUserId", result.body.currUserId);
+        await fkg.setAppItem("currOrgName", result.body.currOrgName);
         await fkg.setAppItem("currOrgId", result.body.currOrgId);
         await fkg.setAppItem("currOrgType", result.body.currOrgType);
         await fkg.setAppItem("token", result.body.token);
-        if (res === false) {
-          alert("设备错误");
-          return;
-        }
+        await fkg.setAppItem("authorities", result.body.authorities);
+        // if (res === false) {
+        //   alert("设备错误");
+        //   return;
+        // }
         //redirection and starting multitab app
         goToMain();
       } else {
@@ -124,17 +127,19 @@ class Login extends Component {
             <View>
               <Text>欢迎！还没有账户？</Text>
             </View>
-            <View>
-              <Button
-                title="注册"
-                onPress={() => {
-                  Navigation.push(this.props.componentId, {
-                    component: {
-                      name: "Signup"
-                    }
-                  });
-                }}
-              />
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ marginRight: 5 }}>
+                <Button
+                  title="注册"
+                  onPress={() => {
+                    Navigation.push(this.props.componentId, {
+                      component: {
+                        name: "Signup"
+                      }
+                    });
+                  }}
+                />
+              </View>
               <Button
                 title="找回密码"
                 onPress={() => {

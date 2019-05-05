@@ -97,7 +97,7 @@ class RecoverPhoneForm extends Component {
   }
 
   componentWillMount() {
-    const scalar = (Dimensions.get("window").width - 60) / 580;
+    const scalar = (Dimensions.get("window").width - 60) / 340;
     this.setState({
       scalar
     });
@@ -231,8 +231,8 @@ class RecoverPhoneForm extends Component {
             }}
             style={{
               flex: 1,
-              width: 590 * this.state.scalar,
-              height: 470 * this.state.scalar
+              width: 340 * this.state.scalar,
+              height: 240 * this.state.scalar
             }}
           >
             <Gestures

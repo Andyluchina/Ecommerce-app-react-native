@@ -26,6 +26,7 @@ import FloorDisplay from "../components/FloorDisplay";
 import CategoryBar from "../components/CategoryBar";
 import { Navigation } from "react-native-navigation";
 import { showSecondaryPage } from "./showSecondaryPage";
+import util from "../common/Const";
 //import ReactNativeComponentTree from "react/lib/ReactNativeComponentTree";
 
 const styles = StyleSheet.create({
@@ -54,6 +55,17 @@ class Home extends Component {
 
     fkg.asyncHttpGet("/mall/carousel/search", succ, err);
   }
+  async componentDidMount() {
+    const regionName = await fkg.getAppItem("regionName");
+    const currentType = await fkg.getAppItem("currType");
+    let b;
+    if (currentType === fkg.B2B) {
+      b = "B2B";
+    } else {
+      b = "B2C";
+    }
+    util.toastLong("当前商城: " + b + regionName);
+  }
 
   state = {
     search: "",
@@ -62,6 +74,24 @@ class Home extends Component {
 
   search = () => {
     console.log(this.state.search);
+    Navigation.push("Home", {
+      //Use your stack Id instead of this.pros.componentId
+      component: {
+        name: "SearchSpecific",
+        passProps: {
+          data: this.state.search
+        },
+        options: {
+          topBar: {
+            visible: true,
+            drawBehind: false,
+            animate: false,
+            text: this.state.search
+          },
+          bottomTabs: { visible: false, drawBehind: true, animate: true }
+        }
+      }
+    });
   };
   updateSearch = search => {
     this.setState({ search });

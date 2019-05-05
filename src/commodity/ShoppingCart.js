@@ -9,7 +9,7 @@ import {
   ScrollView,
   TouchableOpacity
 } from "react-native";
-
+import { Navigation } from "react-native-navigation";
 import util from "../common/Const";
 import {
   ScrollableTabView,
@@ -47,34 +47,64 @@ export default class ShoppingCart extends React.Component {
   constructor(props) {
     super(props);
   }
-
+  CreateOrder = (result, type) => {
+    Navigation.push(this.props.componentId, {
+      component: {
+        name: "CreateOrder",
+        passProps: {
+          data: result,
+          type: type
+        },
+        options: {
+          topBar: {
+            visible: true,
+            drawBehind: false,
+            animate: false
+          },
+          bottomTabs: {
+            visible: false,
+            drawBehind: true,
+            animate: true
+          }
+        }
+      }
+    });
+  };
   //redirection is still to do.
   render() {
     return (
       <ScrollableTabView
         style={{ marginTop: 0 }}
         initialPage={0}
-        renderTabBar={() => <ScrollableTabBar/>}
+        renderTabBar={() => <ScrollableTabBar />}
       >
         <ShoppingCartList
           tabLabel={"B2B全国"}
           navigation={this.props.navigation}
           type={"B2B全国"}
+          NotinShoppingCart={this.props.NotinShoppingCart}
+          CreateOrder={this.CreateOrder}
         />
         <ShoppingCartList
           tabLabel={"B2B地方"}
           navigation={this.props.navigation}
           type={"B2B地方"}
+          NotinShoppingCart={this.props.NotinShoppingCart}
+          CreateOrder={this.CreateOrder}
         />
         <ShoppingCartList
           tabLabel={"B2C全国"}
           navigation={this.props.navigation}
           type={"B2C全国"}
+          NotinShoppingCart={this.props.NotinShoppingCart}
+          CreateOrder={this.CreateOrder}
         />
         <ShoppingCartList
           tabLabel={"B2C地方"}
           navigation={this.props.navigation}
           type={"B2C地方"}
+          NotinShoppingCart={this.props.NotinShoppingCart}
+          CreateOrder={this.CreateOrder}
         />
       </ScrollableTabView>
     );

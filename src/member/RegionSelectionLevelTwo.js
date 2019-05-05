@@ -53,6 +53,12 @@ export default class RegionSelectionLevelTwo extends React.Component {
                 Navigation.push(this.props.componentId, {
                   component: {
                     name: "RegionSelectionLevelThree",
+                    passProps: {
+                      id: this.props.id,
+                      isAdd: this.props.isAdd,
+                      isMember: this.props.isMember,
+                      fatherComponentId: this.props.fatherComponentId
+                    },
                     options: {
                       topBar: {
                         visible: true,
@@ -110,7 +116,7 @@ export default class RegionSelectionLevelTwo extends React.Component {
 
       if (response.status === 200) {
         let responseJson = await response.json();
-        util.log(formData + "~~~~~" + responseJson);
+
         this.setState({
           regions: responseJson.body
         });

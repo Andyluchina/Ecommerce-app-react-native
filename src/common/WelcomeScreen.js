@@ -31,6 +31,18 @@ class WelcomeScreen extends Component {
   }
 
   async componentDidMount() {
+    const res = await fkg.getAppItem("currType");
+    if (!res) {
+      await fkg.setAppItem("currType", fkg.B2C);
+    }
+    const res1 = await fkg.getAppItem("currMall");
+    if (!res1) {
+      await fkg.setAppItem("currMall", fkg.G_MALL);
+    }
+    const res2 = await fkg.getAppItem("regionName");
+    if (!res2) {
+      await fkg.setAppItem("regionName", "全国");
+    }
     setTimeout(async function() {
       const user = await fkg.getAppItem("token");
       console.log("user: ", user);

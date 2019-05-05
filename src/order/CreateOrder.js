@@ -7,10 +7,12 @@ import {
   Button,
   Image,
   ScrollView,
+  TouchableOpacity,
   TouchableWithoutFeedback
 } from "react-native";
 import AddressIcon from "../assets/addressIcon.jpg";
 import fkg from "../common/Util";
+import { Navigation } from "react-native-navigation";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -147,9 +149,14 @@ class CreateOrder extends Component {
     console.log("confirmed");
   };
   onChangeAddress = () => {
-    console.log("changing address");
+    //console.log("changing address");
   };
-
+  ChooseAddress = index => {
+    var address = this.state.addresses[index];
+    this.setState({
+      selectedAddress: address
+    });
+  };
   handleInputChange = deposit => {
     this.setState({
       deposit
@@ -158,7 +165,33 @@ class CreateOrder extends Component {
   render() {
     return (
       <View style={{ flex: 1 }}>
-        <TouchableWithoutFeedback onPress={this.onChangeAddress}>
+        <TouchableOpacity
+          onPress={() => {
+            console.log(this.props);
+            Navigation.push("ShoppingCart", {
+              //Use your stack Id instead of this.pros.componentId
+              component: {
+                name: "ChooseAddressPage",
+                passProps: {
+                  addresses: this.state.addresses,
+                  choose: this.ChooseAddress
+                },
+                options: {
+                  topBar: {
+                    visible: true,
+                    drawBehind: false,
+                    animate: false
+                  },
+                  bottomTabs: {
+                    visible: false,
+                    drawBehind: true,
+                    animate: true
+                  }
+                }
+              }
+            });
+          }}
+        >
           <View style={styles.address}>
             <View style={styles.iconContainer}>
               <Image
@@ -177,7 +210,7 @@ class CreateOrder extends Component {
               <Text>{this.state.selectedAddress.detailAddress}</Text>
             </View>
           </View>
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
         <ScrollView>
           <View style={styles.commodityBar}>
             {this.props.data.good.map(com => {

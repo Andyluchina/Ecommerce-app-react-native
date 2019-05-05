@@ -8,14 +8,21 @@ import {
   Image,
   Dimensions,
   ScrollView,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  TouchableOpacity
 } from "react-native";
 import { Overlay } from "react-native-elements";
 import { Button } from "react-native-elements";
 import Carousel from "react-native-snap-carousel";
 import fkg from "../common/Util";
 import CommoditySpecificPageBottomIcons from "../common/CommoditySpecificPageBottomIcons";
-
+import WebViewCommo from "./WebViewCommo";
+import {
+  ScrollableTabView,
+  DefaultTabBar,
+  ScrollableTabBar
+} from "@valdio/react-native-scrollable-tabview";
+import CommodityDisplay from "./CommodityDisplay";
 var _ = require("lodash");
 import support from "../assets/support.png";
 import likeEmpty from "../assets/like-empty.png";
@@ -23,7 +30,8 @@ import shopping from "../assets/shopping-cart.png";
 import NumericInput from "react-native-numeric-input";
 import HTTP from "../common/HTTPmethod";
 import util from "../common/Const";
-
+import AttributesTab from "./AttributesTab";
+import CommentTab from "./CommentTab";
 const styles = StyleSheet.create({
   description: {
     fontSize: 25,
@@ -107,8 +115,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     width: 90,
-    borderTopStartRadius: 20,
-    borderBottomStartRadius: 20
+    borderRadius: 20,
+    marginRight: 10
   },
   buyNow: {
     alignItems: "center",
@@ -121,6 +129,28 @@ const styles = StyleSheet.create({
     width: 90,
     borderTopEndRadius: 20,
     borderBottomEndRadius: 20
+  },
+  specContainer: {
+    marginLeft: 5,
+    marginRight: 5,
+    borderWidth: 2,
+    borderRadius: 5,
+    borderColor: "grey",
+    marginTop: 2,
+    marginBottom: 2,
+    paddingRight: 6,
+    paddingLeft: 6
+  },
+  specSelectedContainer: {
+    marginLeft: 5,
+    marginRight: 5,
+    borderWidth: 2,
+    borderRadius: 5,
+    borderColor: "#ff7e28",
+    marginTop: 2,
+    marginBottom: 2,
+    paddingRight: 6,
+    paddingLeft: 6
   }
 });
 
@@ -143,52 +173,71 @@ class CommoditySpecificPage extends Component {
 
   state = {
     data: {},
-    value: 0,
+    value: 1,
     selectedCommodity: [],
     overLayVisible: false,
     mode: "",
-    entries: []
+    entries: [],
+    selectedSpec: {},
+    specs: [],
+    display: "up",
+    specsMap: new Map(),
+    specSelected: {}
   };
 
-  componentWillMount() {
+  async componentWillMount() {
     //fetching data
     console.log(this.props.data);
     const succ = result => {
       console.log(result.body);
       this.setState({
         data: result.body,
-        entries: JSON.parse(result.body.bigImageUri)
+        entries: JSON.parse(result.body.bigImageUri),
+        selectedSpec: result.body.commoditySpecs[0],
+        specs: result.body.commoditySpecs
       });
+      ////
+      const specsMap = new Map();
+      const specSelected = {};
+      for (const spec of result.body.commoditySpecs) {
+        const specValues = JSON.parse(spec.specValues);
+        for (const value of specValues) {
+          if (specsMap.has(value.ni)) {
+            const mapList = specsMap.get(value.ni);
+            if (!mapList.find(e => e.vi === value.vi)) {
+              specsMap.get(value.ni).push(value);
+            }
+          } else {
+            specSelected[value.ni] = value.vi;
+            specsMap.set(value.ni, [value]);
+          }
+        }
+      }
+      this.setState({
+        specsMap,
+        specSelected
+      });
+      /////
     };
 
     const err = result => {
       alert(result);
     };
-
-    // const id = "322870972065513473"; //passed props
-
-    fkg.asyncHttpGet(
-      "/commodity/b2c/global/commodity/load?id=" + this.props.data.commodityId,
-      succ,
-      err
-    );
-  }
-
-  _renderItem({ item, index }) {
-    return (
-      <View style={styles.slide}>
-        <Image
-          style={{ width: Dimensions.get("window").width, height: 300 }}
-          source={{
-            uri: fkg.PIC_URL + item
-          }}
-        />
-      </View>
-    );
+    const ctype = this.props.data.ctype;
+    let uri;
+    if (ctype === fkg.TYPE_B2B_G) {
+      uri = "/commodity/b2b/global/commodity/load?id=";
+    } else if (ctype === fkg.TYPE_B2B_R) {
+      uri = "/commodity/b2b/region/commodity/load?id=";
+    } else if (ctype === fkg.TYPE_B2C_G) {
+      uri = "/commodity/b2c/global/commodity/load?id=";
+    } else if (ctype === fkg.TYPE_B2C_R) {
+      uri = "/commodity/b2c/region/commodity/load?id=";
+    }
+    fkg.asyncHttpGet(uri + this.props.id, succ, err);
   }
 
   onPressPutInCart = () => {
-    console.log("cart");
     this.setState({
       overLayVisible: true,
       mode: "putInCart"
@@ -205,7 +254,7 @@ class CommoditySpecificPage extends Component {
     //do some operation
     // 加入购物车
     // TODO cytpe
-    let cType = 1;
+    let cType = this.state.data.ctype;
     let type = "";
     if (cType === fkg.COMMODITY_TYPE_B2B_G) {
       type = "b2b/global";
@@ -217,19 +266,22 @@ class CommoditySpecificPage extends Component {
       type = "b2c/region";
     }
 
+    util.log(await fkg.getAppItem("currentUserId"));
     // TODO 这边需要渲染specid specPrice id commodityName supplierName
     let formData = {
-      action: 0,
-      commodityName: "string",
-      id: "string",
-      memberId: await fkg.getAppItem("currentUserId"),
+      commodityName: this.state.data.commodityName,
+      // id: this.props.data.commodityId,
+      memberId: await fkg.getAppItem("currUserId"),
       quantity: this.state.value,
-      specId: "string",
-      specPrice: 0,
-      status: 0,
-      supplierName: "string",
-      transactionId: "string"
+      specId: this.state.selectedSpec.id,
+      specPrice: this.state.selectedSpec.fkgouPrice,
+      supplierName: this.state.data.supplierName,
+      commodityImageUri: this.state.entries[0],
+      specName: this.state.selectedSpec.specName
+      // transactionId: this.state.data.transactionId
     };
+
+    util.log(formData);
 
     try {
       let response = await HTTP._fetch(
@@ -239,6 +291,7 @@ class CommoditySpecificPage extends Component {
         })
       );
 
+      util.log(response);
       if (response.status === 200) {
         util.toastLong("成功加入购物车");
       } else util.toastLong("网络错误");
@@ -247,40 +300,106 @@ class CommoditySpecificPage extends Component {
     }
   };
 
+  renderSpecsHere = () => {
+    this.state.specs.map(spec => {
+      if (spec.id === this.state.selectedSpec.id) {
+        return (
+          <View style={styles.specContainer}>
+            <TouchableOpacity
+              onPress={event => {
+                this.setState({
+                  selectedSpec: spec
+                });
+              }}
+            >
+              <Text>{spec.specName}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.specSelectedContainer}>
+            <TouchableOpacity
+              onPress={event => {
+                this.setState({
+                  selectedSpec: spec
+                });
+              }}
+            >
+              <Text>{spec.specName}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }
+    });
+  };
+
+  // onSwipe(gestureName, gestureState) {
+  //   const { SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT } = swipeDirections;
+  //   this.setState({ gestureName: gestureName });
+  //   switch (gestureName) {
+  //     case SWIPE_UP:
+  //       this.setState({ backgroundColor: "red" });
+  //       break;
+  //     case SWIPE_DOWN:
+  //       this.setState({ backgroundColor: "green" });
+  //       break;
+  //     case SWIPE_LEFT:
+  //       this.setState({ backgroundColor: "blue" });
+  //       break;
+  //     case SWIPE_RIGHT:
+  //       this.setState({ backgroundColor: "yellow" });
+  //       break;
+  //   }
+  // }
+  onChangeDisplay = () => {
+    this.setState({ display: "down" });
+  };
+
+  onChangeDisplayUp = () => {
+    this.setState({ display: "up" });
+  };
+  renderDisplay = () => {
+    if (this.state.display === "up") {
+      return (
+        <CommodityDisplay
+          tabLabel="商品参数"
+          entries={this.state.entries}
+          data={this.state.data}
+          specSelected={this.state.specSelected}
+          quantity={this.state.value}
+          onChangeDisplay={this.onChangeDisplay}
+          specsMap={this.state.specsMap}
+        />
+      );
+    } else {
+      return (
+        <ScrollableTabView
+          style={{ marginTop: 0 }}
+          initialPage={0}
+          renderTabBar={() => <ScrollableTabBar />}
+        >
+          <WebViewCommo
+            tabLabel="商品详情"
+            data={this.state.data.descriptions}
+            onChangeDisplay={this.onChangeDisplayUp}
+          />
+          <AttributesTab
+            tabLabel="商品参数"
+            onChangeDisplay={this.onChangeDisplayUp}
+          />
+          <CommentTab
+            tabLabel="商品评论"
+            onChangeDisplay={this.onChangeDisplayUp}
+          />
+        </ScrollableTabView>
+      );
+    }
+  };
   render() {
     return (
       <View style={{ backgroundColor: "#f2f2f2", flex: 1 }}>
-        <ScrollView>
-          <Carousel
-            ref={c => {
-              this._carousel = c;
-            }}
-            data={this.state.entries}
-            renderItem={this._renderItem}
-            sliderWidth={Dimensions.get("window").width}
-            itemWidth={Dimensions.get("window").width}
-            lockScrollWhileSnapping
-            enableSnap
-            loop
-          />
-          <View style={styles.infoWrap}>
-            <View>
-              <Text style={styles.description}>
-                {this.state.data.commodityName}
-              </Text>
-              <Text style={styles.descriptionSmall}>
-                {this.state.data.descriptions}
-              </Text>
-            </View>
-            <View style={styles.priceTagWrap}>
-              <Text style={styles.priceTag}>&yen;{this.state.data.price}</Text>
-            </View>
-          </View>
-
-          <View style={styles.chosen}>
-            <Text style={styles.chosenText}>已选</Text>
-          </View>
-        </ScrollView>
+        {this.renderDisplay()}
         <View style={styles.footer}>
           <View style={styles.icons}>
             <CommoditySpecificPageBottomIcons name={"客服"} image={support} />
@@ -288,17 +407,35 @@ class CommoditySpecificPage extends Component {
             <CommoditySpecificPageBottomIcons
               name={"购物车"}
               image={shopping}
+              onPress={() => {
+                Navigation.push(this.props.componentId, {
+                  //Use your stack Id instead of this.pros.componentId
+                  component: {
+                    name: "ShoppingCart",
+                    passProps: {
+                      NotinShoppingCart: true
+                    },
+                    options: {
+                      topBar: {
+                        visible: true,
+                        drawBehind: false,
+                        animate: false
+                      },
+                      bottomTabs: {
+                        visible: false,
+                        drawBehind: true,
+                        animate: true
+                      }
+                    }
+                  }
+                });
+              }}
             />
           </View>
           <View style={styles.buttons}>
             <TouchableWithoutFeedback onPress={this.onPressPutInCart}>
               <View style={styles.putInCart}>
                 <Text>加入购物车</Text>
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback onPress={this.onPressBuyNow}>
-              <View style={styles.buyNow}>
-                <Text>立即购买</Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -314,17 +451,18 @@ class CommoditySpecificPage extends Component {
           <View>
             <View style={{ flexDirection: "row" }}>
               <Image
-                source={{ uri: "http://www.w3school.com.cn/i/eg_tulip.jpg" }}
+                source={{ uri: fkg.PIC_URL + this.state.entries[0] }}
                 style={{ height: 130, width: 130 }}
               />
               <View style={{ justifyContent: "flex-end", marginLeft: 15 }}>
                 <Text
                   style={{ fontSize: 17, color: "#ed4f3d", marginBottom: 7 }}
                 >
-                  &yen;商品价格
+                  &yen;{this.state.selectedSpec.fkgouPrice}
                 </Text>
-                <Text style={{ marginBottom: 5 }}>库存</Text>
-                <Text>配送至</Text>
+                <Text style={{ marginBottom: 5 }}>
+                  库存 {this.state.selectedSpec.inventories}
+                </Text>
               </View>
             </View>
             <ScrollView>
@@ -332,13 +470,14 @@ class CommoditySpecificPage extends Component {
                 style={{
                   borderBottomColor: "#c0c1c4",
                   borderBottomWidth: 1,
-                  paddingBottom: 40
+                  paddingBottom: 5
                 }}
               >
-                <Text>规格</Text>
+                <Text style={{ fontSize: 15 }}>规格</Text>
+                {this.renderList()}
               </View>
               <View>
-                <Text style={{ marginBottom: 5 }}>数量</Text>
+                <Text style={{ marginBottom: 5, fontSize: 15 }}>数量</Text>
                 <NumericInput
                   minValue={0}
                   value={this.state.value}
@@ -357,6 +496,89 @@ class CommoditySpecificPage extends Component {
       </View>
     );
   }
+  renderList = () => {
+    var res = [];
+    this.state.specsMap.forEach((value, key, map) => {
+      res.push(
+        <View>
+          <Text style={{ fontSize: 15 }}>{value[0].n}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {this.renderAttr(key, value)}
+          </View>
+        </View>
+      );
+    });
+    return res;
+  };
+  renderAttr = (key, value) => {
+    return value.map(item => {
+      if (item.vi === this.state.specSelected[key]) {
+        return (
+          <View style={styles.specSelectedContainer}>
+            <TouchableOpacity
+              onPress={event => {
+                var s = this.state.specSelected;
+                s[key] = item.vi;
+                this.setState({
+                  specSelected: s
+                });
+              }}
+            >
+              <Text style={{ color: "#ff7e28", fontSize: 17 }}>{item.v}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.specContainer}>
+            <TouchableOpacity
+              onPress={event => {
+                var s = this.state.specSelected;
+                s[key] = item.vi;
+                this.setState({
+                  specSelected: s
+                });
+              }}
+            >
+              <Text style={{ fontSize: 17 }}>{item.v}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }
+    });
+  };
 }
 
 export default CommoditySpecificPage;
+
+// {this.state.specs.map(specific => {
+//   if (specific.id === this.state.selectedSpec.id) {
+//     return (
+//       <View style={styles.specContainer}>
+//         <TouchableOpacity
+//           onPress={event => {
+//             this.setState({
+//               selectedSpec: specific
+//             });
+//           }}
+//         >
+//           <Text>{specific.specName}</Text>
+//         </TouchableOpacity>
+//       </View>
+//     );
+//   } else {
+//     return (
+//       <View style={styles.specSelectedContainer}>
+//         <TouchableOpacity
+//           onPress={event => {
+//             this.setState({
+//               selectedSpec: specific
+//             });
+//           }}
+//         >
+//           <Text>{specific.specName}</Text>
+//         </TouchableOpacity>
+//       </View>
+//     );
+//   }
+// })}

@@ -16,8 +16,8 @@ export function registerScreensForAuth() {
   );
   Navigation.registerComponent("Home", () => require("../common/Home").default);
   Navigation.registerComponent(
-    "Fkgou",
-    () => require("../commodity/Fkgou").default
+    "Region",
+    () => require("../common/Region").default
   );
   Navigation.registerComponent(
     "ShoppingCart",
@@ -40,12 +40,20 @@ export function registerScreensForAuth() {
     () => require("../commodity/CommoditySpecificPage").default
   );
   Navigation.registerComponent(
+    "SearchSpecific",
+    () => require("../commodity/SearchSpecific").default
+  );
+  Navigation.registerComponent(
     "Order",
     () => require("../order/Order").default
   );
   Navigation.registerComponent(
     "CreateOrder",
     () => require("../order/CreateOrder").default
+  );
+  Navigation.registerComponent(
+    "ChooseAddressPage",
+    () => require("../order/ChooseAddressPage").default
   );
   Navigation.registerComponent(
     "AddressList",

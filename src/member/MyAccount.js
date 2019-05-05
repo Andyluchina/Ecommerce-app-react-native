@@ -14,7 +14,7 @@ import {
 import Avatar from "react-native-badge-avatar";
 import { getAuth } from "../common/getAuth";
 import { Navigation } from "react-native-navigation";
-
+import fkg from "../common/Util";
 import util from "../common/Const";
 
 export default class MyAccount extends React.Component {
@@ -28,13 +28,18 @@ export default class MyAccount extends React.Component {
     };
   }
 
-  componentDidMount() {
+  async componentWillMount() {
     this.getData();
+    const res = await fkg.getAppItem("currUserName");
 
-    DeviceEventEmitter.addListener("refresh", () => {
-      //这里面是要调用的方法，比如：刷新
-      //value:是下面页面在 通知 时 ，所传递过来的参数
-      this.getData();
+    console.log(res);
+    // DeviceEventEmitter.addListener("refresh", () => {
+    //   //这里面是要调用的方法，比如：刷新
+    //   //value:是下面页面在 通知 时 ，所传递过来的参数
+    //   this.getData();
+    // });
+    this.setState({
+      name: res
     });
   }
 

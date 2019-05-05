@@ -1,9 +1,7 @@
 # OSX
 #
 .DS_Store
-Util.js
-Const.js
-HTTPmethod.js
+
 # Xcode
 #
 build/

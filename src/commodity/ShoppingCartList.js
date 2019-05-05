@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react";
 import {
   Text,
   View,
@@ -9,161 +9,190 @@ import {
   FlatList,
   DeviceEventEmitter,
   ScrollView,
-  TouchableHighlight
-} from "react-native"
-import {Navigation} from "react-native-navigation"
-import util from "../common/Const"
-import HTTP from "../common/HTTPmethod"
-import fkg from "../common/Util"
+  TouchableHighlight,
+  RefreshControl
+} from "react-native";
+import { Navigation } from "react-native-navigation";
+import util from "../common/Const";
+import HTTP from "../common/HTTPmethod";
+import fkg from "../common/Util";
 
 export default class ShoppingCartList extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       count: 0,
       h: "hhh",
       isChecked: true,
       data: [],
-      checked: []
-    }
+      checked: [],
+      isRefreshing: false
+    };
   }
 
   componentDidMount() {
-    this.getData()
+    this.getData();
   }
 
   async getData() {
     try {
-      console.log(fkg.getAppItem("currUserId"))
+      console.log(await fkg.getAppItem("currUserId"));
 
-      let type = ""
+      let type = "";
 
       if (this.props.type === "B2B全国") {
-        type = "b2b/global"
+        type = "b2b/global";
       } else if (this.props.type === "B2B地方") {
-        type = "b2b/region"
+        type = "b2b/region";
       } else if (this.props.type === "B2C全国") {
-        type = "b2c/global"
+        type = "b2c/global";
       } else if (this.props.type === "B2C地方") {
-        type = "b2c/region"
+        type = "b2c/region";
       }
 
       let formData = {
-        memberId: 3
-      }
+        memberId: await fkg.getAppItem("currUserId")
+      };
 
       let response = await HTTP._fetch(
         HTTP.GET({
           url: "/commodity/" + type + "/cart/search2",
           formData
         })
-      )
+      );
 
-      util.log(response)
+      util.log(response);
       if (response.status === 200) {
-        let responseJson = await response.json()
+        let responseJson = await response.json();
 
-        let body = responseJson.body
-        let data = []
+        let body = responseJson.body;
+        let data = [];
 
         Object.keys(body).forEach(key => {
           data.push({
             shopName: key,
             items: body[key]
-          })
-        })
+          });
+        });
 
-        let checked = this.getChecked(data)
+        let checked = this.getChecked(data);
         this.setState({
           data: data,
           checked: checked
-        })
-      } else util.toastLong("网络错误")
+        });
+      } else util.toastLong("网络错误");
     } catch (error) {
-      util.toastLong(error)
+      util.toastLong(error);
     }
 
-    this.getChecked()
+    this.getChecked();
   }
 
   getChecked(data) {
-    let checked = []
+    let checked = [];
     for (let i = 0; i < data.length; i++) {
-      let item = []
+      let item = [];
       for (let j = 0; j < data[i].items.length; j++) {
-        item.push(false)
+        item.push(false);
       }
-      checked.push({all: false, item: item})
+      checked.push({ all: false, item: item });
     }
 
-    return checked
+    return checked;
   }
 
   getSelectedItems() {
-    util.log(this.state.data)
-    let ids = []
-    let specids = []
-    let prices = []
-    let names = []
-    let quantitys = []
-    let goods = []
+    util.log(this.state.data);
+    let ids = [];
+    let specids = [];
+    let prices = [];
+    let names = [];
+    let quantitys = [];
+    let goods = [];
     for (let i = 0; i < this.state.data.length; i++) {
-      let item = []
+      let item = [];
       for (let j = 0; j < this.state.data[i].items.length; j++) {
         if (this.state.checked[i].item[j]) {
-          ids.push(this.state.data[i].items[j].id)
-          specids.push(this.state.data[i].items[j].specId)
-          prices.push(this.state.data[i].items[j].specPrice)
-          names.push(this.state.data[i].items[j].commodityName)
-          quantitys.push(this.state.data[i].items[j].quantity)
+          ids.push(this.state.data[i].items[j].id);
+          specids.push(this.state.data[i].items[j].specId);
+          prices.push(this.state.data[i].items[j].specPrice);
+          names.push(this.state.data[i].items[j].commodityName);
+          quantitys.push(this.state.data[i].items[j].quantity);
           goods.push({
             name: this.state.data[i].items[j].commodityName,
             quantity: this.state.data[i].items[j].quantity,
             price: this.state.data[i].items[j].specPrice
-          })
+          });
         }
       }
     }
 
-    return {id: ids, specId: specids, price: prices, quantity: quantitys, name: names, good: goods}
+    return {
+      id: ids,
+      specId: specids,
+      price: prices,
+      quantity: quantitys,
+      name: names,
+      good: goods
+    };
+  }
+
+  async onRefresh() {
+    this.setState({ isRefreshing: true });
+    setTimeout(() => {
+      this.getData();
+
+      //逻辑执行完之后，修改刷新状态为false
+      this.setState({ isRefreshing: false });
+    }, 2000);
   }
 
   render() {
     return (
-      <View style={{flex: 1}}>
-        <ScrollView style={{backgroundColor: util.backgroundColor}}>
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.isRefreshing}
+              onRefresh={this.onRefresh.bind(this)} //(()=>this.onRefresh)或者通过bind来绑定this引用来调用方法
+              tintColor="white"
+              title={this.state.isRefreshing ? "刷新中...." : "下拉刷新"}
+            />
+          }
+          style={{ backgroundColor: util.backgroundColor }}
+        >
           {this.state.data.map((item, index) => (
             <View style={styles.contentBar}>
               <View>
                 <View style={styles.contentItem}>
                   <TouchableHighlight
-                    style={{flexDirection: "row", flex: 1, padding: 0}}
+                    style={{ flexDirection: "row", flex: 1, padding: 0 }}
                     onPress={() => {
-                      let checked = this.state.checked
-                      checked[index].all = !checked[index].all
+                      let checked = this.state.checked;
+                      checked[index].all = !checked[index].all;
                       if (checked[index].all) {
                         for (let j = 0; j < checked[index].item.length; j++) {
-                          checked[index].item[j] = true
+                          checked[index].item[j] = true;
                         }
                       } else {
                         for (let j = 0; j < checked[index].item.length; j++) {
-                          checked[index].item[j] = false
+                          checked[index].item[j] = false;
                         }
                       }
 
-                      let newCheck = []
+                      let newCheck = [];
                       for (let i = 0; i < checked.length; i++) {
-                        newCheck.push(checked[i])
+                        newCheck.push(checked[i]);
                       }
 
                       this.setState({
                         checked: newCheck
-                      })
+                      });
                     }}
                     underlayColor="transparent"
                   >
-                    <View style={{flexDirection: "row", flex: 1}}>
+                    <View style={{ flexDirection: "row", flex: 1 }}>
                       {this.state.checked[index].all ? (
                         <Image
                           source={require("./../assets/ic_check_box.png")}
@@ -174,7 +203,7 @@ export default class ShoppingCartList extends React.Component {
                         />
                       )}
 
-                      <Text style={{flex: 1, marginLeft: 10}}>
+                      <Text style={{ flex: 1, marginLeft: 10 }}>
                         {item.shopName}
                       </Text>
                     </View>
@@ -183,28 +212,28 @@ export default class ShoppingCartList extends React.Component {
               </View>
               {item.items.map((item1, i) => (
                 <TouchableHighlight
-                  style={{flexDirection: "row", padding: 2, marginLeft: 30}}
+                  style={{ flexDirection: "row", padding: 2, marginLeft: 30 }}
                   onPress={() => {
-                    let newChecked = this.state.checked
-                    newChecked[index].item[i] = !newChecked[index].item[i]
+                    let newChecked = this.state.checked;
+                    newChecked[index].item[i] = !newChecked[index].item[i];
 
                     // 判断是否全选或者取消
-                    let change = true
+                    let change = true;
                     for (let j = 0; j < newChecked[index].item.length; j++) {
                       if (
                         newChecked[index].item[i] !== newChecked[index].item[j]
                       ) {
-                        change = false
-                        break
+                        change = false;
+                        break;
                       }
                     }
                     if (change) {
-                      newChecked[index].all = newChecked[index].item[i]
+                      newChecked[index].all = newChecked[index].item[i];
                     }
 
                     this.setState({
                       checked: newChecked
-                    })
+                    });
                   }}
                   underlayColor="transparent"
                 >
@@ -216,7 +245,7 @@ export default class ShoppingCartList extends React.Component {
                     }}
                   >
                     {this.state.checked[index].item[i] ? (
-                      <Image source={require("./../assets/ic_check_box.png")}/>
+                      <Image source={require("./../assets/ic_check_box.png")} />
                     ) : (
                       <Image
                         source={require("./../assets/ic_check_box_outline_blank.png")}
@@ -251,53 +280,59 @@ export default class ShoppingCartList extends React.Component {
         <View>
           <TouchableOpacity
             onPress={() => {
-              let result = this.getSelectedItems()
+              let result = this.getSelectedItems();
 
-              let type = ""
+              let type = "";
 
               if (this.props.type === "B2B全国") {
-                type = "b2b/global"
+                type = "b2b/global";
               } else if (this.props.type === "B2B地方") {
-                type = "b2b/region"
+                type = "b2b/region";
               } else if (this.props.type === "B2C全国") {
-                type = "b2c/global"
+                type = "b2c/global";
               } else if (this.props.type === "B2C地方") {
-                type = "b2c/region"
+                type = "b2c/region";
               }
 
               //跳转到结算界面
-              console.log(result)
-              Navigation.push("ShoppingCart", {
-                //Use your stack Id instead of this.pros.componentId
-                component: {
-                  name: "CreateOrder",
-                  passProps: {
-                    data: result,
-                    type: type
-                  },
-                  options: {
-                    topBar: {
-                      visible: true,
-                      drawBehind: false,
-                      animate: false
-                    },
-                    bottomTabs: {
-                      visible: false,
-                      drawBehind: true,
-                      animate: true
+              if (result.id.length === 0) {
+                util.toastLong("请选择下单商品后提交");
+              } else {
+                if (this.props.NotinShoppingCart) {
+                  this.props.CreateOrder(result, type);
+                } else {
+                  Navigation.push("ShoppingCart", {
+                    component: {
+                      name: "CreateOrder",
+                      passProps: {
+                        data: result,
+                        type: type
+                      },
+                      options: {
+                        topBar: {
+                          visible: true,
+                          drawBehind: false,
+                          animate: false
+                        },
+                        bottomTabs: {
+                          visible: false,
+                          drawBehind: true,
+                          animate: true
+                        }
+                      }
                     }
-                  }
+                  });
                 }
-              })
+              }
             }}
           >
             <View style={styles.redBottomView}>
-              <Text style={styles.redBottomText}>去结算</Text>
+              <Text style={styles.redBottomText}>提交订单</Text>
             </View>
           </TouchableOpacity>
         </View>
       </View>
-    )
+    );
   }
 }
 
@@ -391,4 +426,4 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 15
   }
-})
+});

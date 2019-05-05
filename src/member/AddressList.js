@@ -20,8 +20,7 @@ export default class AddressList extends React.Component {
     super(props)
 
     this.state = {
-      data: [
-      ]
+      data: []
     }
   }
 
@@ -31,9 +30,9 @@ export default class AddressList extends React.Component {
 
   async getData() {
     try {
-      let token = await fkg.getAppItem("currUserId")
-      let formData = {memberId: token}
-      
+      let memberId = await fkg.getAppItem("currUserId")
+      let formData = {memberId: memberId}
+
       let userType = "member"
       if (!this.props.params.isMember) userType = "organization"
 
@@ -71,10 +70,8 @@ export default class AddressList extends React.Component {
 
   async delete(id) {
     try {
-      id = id + ""
-      let formData = {ids: [id]}
-      util.log(formData)
-      util.log("!!!!!!!!")
+      let ids = [id]
+      let formData = [id]
 
       let userType = "member"
       if (!this.props.params.isMember) userType = "organization"
@@ -82,7 +79,7 @@ export default class AddressList extends React.Component {
       let response = await HTTP._fetch(
         HTTP.POST({
           url:
-          "http://106.14.1.151:8007/sys/receipt/address/" +
+          "/sys/receipt/address/" +
           userType +
           "/delete",
           formData
@@ -92,6 +89,7 @@ export default class AddressList extends React.Component {
       if (response.status === 200) {
         let responseJson = await response.json()
         if (responseJson.message === "操作成功") {
+          this.getData()
         } else {
         }
       } else {
@@ -126,11 +124,7 @@ export default class AddressList extends React.Component {
                 style={{width: util.width / 2}}
                 onPress={() => {
                   util.log(item)
-                  // this.props.navigation.navigate("ModifyAddress", {
-                  //   id: item.id,
-                  //   isAdd: false,
-                  //   isMember: this.props.params.isMember
-                  // });
+
                   Navigation.push(this.props.componentId, {
                     //Use your stack Id instead of this.pros.componentId
                     component: {
@@ -184,11 +178,55 @@ export default class AddressList extends React.Component {
         <ScrollView
           style={{height: util.height, backgroundColor: util.backgroundColor}}
         >
+          <TouchableOpacity
+            style={{
+              height: 50,
+              width: util.width - 30,
+              marginLeft: 15,
+              marginTop: 10,
+              backgroundColor: '#ff2e34',
+              borderRadius: 5
+            }}
+            onPress={() => {
+              Navigation.push(this.props.componentId, {
+                //Use your stack Id instead of this.pros.componentId
+                component: {
+                  name: "AddressEdit",
+                  passProps: {
+                    isAdd: true,
+                    isMember: this.props.params.isMember
+                  },
+                  options: {
+                    topBar: {
+                      visible: true,
+                      drawBehind: false,
+                      animate: false,
+                      text: "编辑地址"
+                    },
+                    bottomTabs: {
+                      visible: false,
+                      drawBehind: true,
+                      animate: true
+                    }
+                  }
+                }
+              })
+            }}>
+            <Text style={{
+              width: util.width - 30,
+              marginTop: 16,
+              textAlign: 'center',
+              fontSize: 18,
+              color: 'white',
+              fontWeight: 'bold'
+            }}>新增</Text>
+          </TouchableOpacity>
           <FlatList
             data={this.state.data}
             renderItem={({item}) => <View>{this.renderItem(item)}</View>}
             keyExtractor={(item, index) => index + ""}
-            onEndReached={()=>{}}
+            onEndReached={() => {
+            }}
           />
         </ScrollView>
       </View>

@@ -3,6 +3,7 @@ package com.fkgoucli;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -15,6 +16,8 @@ import com.reactnativenavigation.react.ReactGateway;
 
 import java.util.Arrays;
 import java.util.List;
+
+import com.fkgoucli.android_upgrade.UpgradePackage;
 
 public class MainApplication extends NavigationApplication {
 
@@ -41,7 +44,9 @@ public class MainApplication extends NavigationApplication {
         }
         protected List<ReactPackage> getPackages() {
           return Arrays.<ReactPackage>asList(
+                  new UpgradePackage(),
             //  new MainReactPackage(),
+            new RNCWebViewPackage(),
             new VectorIconsPackage()
           );
         }

@@ -6,7 +6,7 @@ import {
 import util from "../common/Const"
 import HTTP from "../common/HTTPmethod"
 import fkg from "../common/Util"
-import { Navigation } from "react-native-navigation";
+import {Navigation} from "react-native-navigation"
 
 export default class RegionSelectionLevelFour extends React.Component {
 
@@ -14,8 +14,7 @@ export default class RegionSelectionLevelFour extends React.Component {
     super(props)
 
     this.state = {
-      regions: [
-      ],
+      regions: [],
       currentSelections: ''
     }
   }
@@ -43,24 +42,31 @@ export default class RegionSelectionLevelFour extends React.Component {
             <TouchableOpacity style={{backgroundColor: '#f8f8f8'}} onPress={() => {
               fkg.setAppItem('regionId', item.id)
               fkg.setAppItem('regionLevelFour', item.regionFullName)
-              // this.props.navigation.navigate('NewAddress')
-              Navigation.push(this.props.componentId, {
-                component: {
-                  name: "AddressEdit",
-                  options: {
-                    topBar: {
-                      visible: true,
-                      drawBehind: false,
-                      animate: false
-                    },
-                    bottomTabs: {
-                      visible: false,
-                      drawBehind: true,
-                      animate: true
-                    }
-                  }
-                }
-              });
+              util.log(this.props.fatherComponentId)
+              Navigation.popTo(this.props.fatherComponentId)
+              // Navigation.push(this.props.componentId, {
+              //   component: {
+              //     name: "AddressEdit",
+              //     passProps: {
+              //       id: this.props.id,
+              //       isAdd: this.props.isAdd,
+              //       isMember: this.props.isMember,
+              //       isReturn: true
+              //     },
+              //     options: {
+              //       topBar: {
+              //         visible: true,
+              //         drawBehind: false,
+              //         animate: false
+              //       },
+              //       bottomTabs: {
+              //         visible: false,
+              //         drawBehind: true,
+              //         animate: true
+              //       }
+              //     }
+              //   }
+              // })
             }}>
               <Text style={{fontSize: 20, marginTop: 16, marginBottom: 16, marginLeft: 12}}>{item.regionFullName}</Text>
             </TouchableOpacity>

@@ -41,6 +41,12 @@ export default class RegionSelection extends React.Component {
                 Navigation.push(this.props.componentId, {
                   component: {
                     name: "RegionSelectionLevelOne",
+                    passProps: {
+                      id: this.props.id,
+                      isAdd: this.props.isAdd,
+                      isMember: this.props.isMember,
+                      fatherComponentId: this.props.fatherComponentId
+                    },
                     options: {
                       topBar: {
                         visible: true,
@@ -90,10 +96,9 @@ export default class RegionSelection extends React.Component {
         HTTP.POST({ url: "/sys/region/search", formData })
       );
 
-      util.log(response)
       if (response.status === 200) {
         let responseJson = await response.json();
-        util.log(responseJson.body)
+
         this.setState({
           regions: responseJson.body
         });

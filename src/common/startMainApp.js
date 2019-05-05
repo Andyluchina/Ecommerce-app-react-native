@@ -33,15 +33,15 @@ export const goToMain = () => {
               children: [
                 {
                   component: {
-                    id: "Fkgou",
-                    name: "Fkgou"
+                    id: "Region",
+                    name: "Region"
                   }
                 }
               ],
               options: {
                 bottomTab: {
                   fontSize: 12,
-                  text: "疯狂购",
+                  text: "导航",
                   icon: require("../assets/price-tag.png")
                 },
                 topBar: {

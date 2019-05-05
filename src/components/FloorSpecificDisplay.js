@@ -53,12 +53,19 @@ class FloorSpecificDisplay extends Component {
   //redirection is still to do.
 
   navigateToSpecific = data => {
+    let id;
+    if (this.props.mode === "display") {
+      id = data.commodityId;
+    } else if (this.props.mode === "commodity") {
+      id = data.id;
+    }
     Navigation.push("Home", {
       //Use your stack Id instead of this.pros.componentId
       component: {
         name: "CommoditySpecificPage",
         passProps: {
-          data: data
+          data: data,
+          id: id
         },
         options: {
           topBar: {

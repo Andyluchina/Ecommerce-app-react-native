@@ -32,7 +32,7 @@ class CommoditySpecificPageBottomIcons extends Component {
 
   render() {
     return (
-      <TouchableWithoutFeedback onPress={() => console.log(this.props.name)}>
+      <TouchableWithoutFeedback onPress={() => this.props.onPress()}>
         <View style={styles.container}>
           <Image
             source={this.props.image}
