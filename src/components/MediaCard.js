@@ -28,7 +28,7 @@ class MediaCard extends Component {
       <Container
         style={{
           width: Dimensions.get("window").width / 2,
-          height: 300,
+          height: 320,
           justifyContent: "center"
         }}
       >

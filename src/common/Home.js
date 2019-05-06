@@ -43,7 +43,7 @@ class Home extends Component {
     super(props);
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     const succ = result => {
       console.log(result);
       this.setState({ entries: result.body });
@@ -52,8 +52,28 @@ class Home extends Component {
     const err = result => {
       alert(result);
     };
-
-    fkg.asyncHttpGet("/mall/carousel/search", succ, err);
+    const orgId = await fkg.getAppItem("currOperatorId");
+    const mallType = await fkg.getAppItem("currMall");
+    const tradeType = await fkg.getAppItem("currType");
+    let ctype;
+    if (fkg.G_MALL == mallType) {
+      if (fkg.B2B == tradeType) {
+        ctype = fkg.TYPE_B2B_G;
+      } else if (fkg.B2C == tradeType) {
+        ctype = fkg.TYPE_B2C_G;
+      }
+    } else if (fkg.R_MALL == mallType) {
+      if (fkg.B2B == tradeType) {
+        ctype = fkg.TYPE_B2B_R;
+      } else if (fkg.B2C == tradeType) {
+        ctype = fkg.TYPE_B2C_R;
+      }
+    }
+    fkg.asyncHttpGet(
+      "/mall/carousel/search?commType=" + ctype + "&orgId=" + orgId,
+      succ,
+      err
+    );
   }
   async componentDidMount() {
     const regionName = await fkg.getAppItem("regionName");

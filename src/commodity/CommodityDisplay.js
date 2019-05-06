@@ -33,17 +33,13 @@ class CommodityDisplay extends Component {
     var arr = Object.keys(this.props.specSelected);
     var i;
     let text = "";
-    console.log(arr);
     for (i = 0; i < arr.length; i++) {
       text += this.getAttrName(arr[i], this.props.specSelected[arr[i]]) + " ";
     }
     return text;
   };
   getAttrName = (key, value) => {
-    console.log(key);
-    console.log(this.props.specsMap);
     const arr = this.props.specsMap.get(key);
-    console.log(arr);
     var i;
     if (!arr) {
       return;
@@ -79,7 +75,9 @@ class CommodityDisplay extends Component {
               </Text>
             </View>
             <View style={styles.priceTagWrap}>
-              <Text style={styles.priceTag}>&yen;{this.props.data.price}</Text>
+              <Text style={styles.priceTag}>
+                &yen;{this.props.selectedSpec.fkgouPrice}
+              </Text>
             </View>
           </View>
           <View style={styles.chosen}>

@@ -28,7 +28,7 @@ class FloorDisplay extends Component {
     super(props);
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     const succ = result => {
       this.setState({ data: result.body });
       //  alert("in success");
@@ -37,25 +37,54 @@ class FloorDisplay extends Component {
     const err = result => {
       alert(result);
     };
+    const orgId = await fkg.getAppItem("currOperatorId");
+    const mallType = await fkg.getAppItem("currMall");
+    const tradeType = await fkg.getAppItem("currType");
+    let ctype;
+    if (fkg.G_MALL == mallType) {
+      if (fkg.B2B == tradeType) {
+        ctype = fkg.TYPE_B2B_G;
+      } else if (fkg.B2C == tradeType) {
+        ctype = fkg.TYPE_B2C_G;
+      }
+    } else if (fkg.R_MALL == mallType) {
+      if (fkg.B2B == tradeType) {
+        ctype = fkg.TYPE_B2B_R;
+      } else if (fkg.B2C == tradeType) {
+        ctype = fkg.TYPE_B2C_R;
+      }
+    }
     const param = JSON.stringify({
       category: 1,
       category2: this.props.floorNumber,
       pageNo: 1,
-      pageSize: 6
+      pageSize: 6,
+      orgId,
+      ctype
     });
 
     fkg.asyncHttpPost("/mall/commodity/show/search", param, succ, err);
+    // const param = JSON.stringify({
+    //   category: 1,
+    //   category2: this.props.floorNumber,
+    //   pageNo: 1,
+    //   pageSize: 6
+    // });
+    //
+    // fkg.asyncHttpPost("/mall/commodity/show/search", param, succ, err);
   }
   state = {
     data: []
   };
 
   renderSplitMedia = item => {
-    return <Grid>{item.map(i => this.showCard(i))}</Grid>;
+    return (
+      <Grid key={JSON.stringify(item)}>{item.map(i => this.showCard(i))}</Grid>
+    );
   };
 
   showCard = i => (
-    <Col size={50}>
+    <Col size={50} key={JSON.stringify(i)}>
       <MediaCard data={i} navigate={this.navigateToSpecific} />
     </Col>
   );
@@ -75,12 +104,15 @@ class FloorDisplay extends Component {
   //redirection is still to do.
 
   navigateToSpecific = data => {
+    let id;
+    id = data.commodityId;
     Navigation.push("Home", {
       //Use your stack Id instead of this.pros.componentId
       component: {
         name: "CommoditySpecificPage",
         passProps: {
-          data: data
+          data: data,
+          id: id
         },
         options: {
           topBar: {

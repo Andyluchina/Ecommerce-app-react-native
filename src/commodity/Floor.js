@@ -42,7 +42,7 @@ class Floor extends Component {
     super(props);
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     const succ = result => {
       console.log(result.body);
       this.setState({
@@ -53,8 +53,28 @@ class Floor extends Component {
     const err = result => {
       alert(result);
     };
-
-    fkg.asyncHttpGet("/mall/floor/search?orgId=8", succ, err);
+    const orgId = await fkg.getAppItem("currOperatorId");
+    const mallType = await fkg.getAppItem("currMall");
+    const tradeType = await fkg.getAppItem("currType");
+    let ctype;
+    if (fkg.G_MALL == mallType) {
+      if (fkg.B2B == tradeType) {
+        ctype = fkg.TYPE_B2B_G;
+      } else if (fkg.B2C == tradeType) {
+        ctype = fkg.TYPE_B2C_G;
+      }
+    } else if (fkg.R_MALL == mallType) {
+      if (fkg.B2B == tradeType) {
+        ctype = fkg.TYPE_B2B_R;
+      } else if (fkg.B2C == tradeType) {
+        ctype = fkg.TYPE_B2C_R;
+      }
+    }
+    fkg.asyncHttpGet(
+      "/mall/floor/search?orgId=" + orgId + "&commType=" + ctype,
+      succ,
+      err
+    );
   }
 
   state = {
@@ -84,7 +104,7 @@ class Floor extends Component {
   render() {
     return this.state.data.map(floor => {
       return (
-        <View style={{ marginTop: 10 }}>
+        <View style={{ marginTop: 10 }} key={JSON.stringify(floor)}>
           <TouchableOpacity onPress={() => this.onPressFloor(floor)}>
             <View style={styles.floorTextContainer}>
               <Text style={styles.floorText}>{floor.floorName}</Text>

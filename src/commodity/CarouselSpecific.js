@@ -59,7 +59,7 @@ class CarouselSpecific extends Component {
     return (
       <View style={{ backgroundColor: "#f2f2f2", flex: 1 }}>
         <ScrollView>
-          <FloorSpecificDisplay data={this.state.data} />
+          <FloorSpecificDisplay data={this.state.data} mode={"display"} />
         </ScrollView>
       </View>
     );

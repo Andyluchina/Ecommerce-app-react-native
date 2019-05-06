@@ -153,14 +153,16 @@ const getAppItem = async key => {
 };
 fkg.getAppItem = getAppItem;
 
-const asyncHttpPost = (url, param, succ, err, contentType) => {
+const asyncHttpPost = (url, param, succ, err, contentType, token) => {
   if (!contentType) contentType = "application/json";
 
   let headers = {};
   headers["content-type"] = contentType;
   // headers["Accept"] = fkg.getAppItem("application/json");
-  // headers["token"] = fkg.getAppItem("token");
-
+  //
+  if (token) {
+    headers["token"] = token;
+  }
   let params = {
     method: "post",
     credentials: "include", // include, same-origin, *omit

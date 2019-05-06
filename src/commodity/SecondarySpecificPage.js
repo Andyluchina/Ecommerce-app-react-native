@@ -18,10 +18,10 @@ class SecondarySpecificPage extends Component {
     super(props);
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     //fetch data
     if (!this.props.main) {
-      const succ = result => {
+      const succ = async result => {
         console.log(result.body);
         this.setState({
           thirdCate: result.body
@@ -38,18 +38,30 @@ class SecondarySpecificPage extends Component {
         const err = result => {
           alert(result);
         };
+        const orgId = await fkg.getAppItem("currOperatorId");
         let param;
         param = JSON.stringify({
           category2Id: this.props.cateid.id,
-          pageNo: 1
+          pageNo: 1,
+          orgId
         });
-
-        fkg.asyncHttpPost(
-          "/commodity/b2c/global/commodity/search",
-          param,
-          succ,
-          err
-        );
+        const mallType = await fkg.getAppItem("currMall");
+        const tradeType = await fkg.getAppItem("currType");
+        let uri = "";
+        if (fkg.G_MALL == mallType) {
+          if (fkg.B2B == tradeType) {
+            uri = `/commodity/b2b/global/commodity/search`;
+          } else if (fkg.B2C == tradeType) {
+            uri = `/commodity/b2c/global/commodity/search`;
+          }
+        } else if (fkg.R_MALL == mallType) {
+          if (fkg.B2B == tradeType) {
+            uri = `/commodity/b2b/region/commodity/search`;
+          } else if (fkg.B2C == tradeType) {
+            uri = `/commodity/b2c/region/commodity/search`;
+          }
+        }
+        fkg.asyncHttpPost(uri, param, succ, err);
       };
 
       const err = result => {
@@ -69,19 +81,31 @@ class SecondarySpecificPage extends Component {
       const err = result => {
         alert(result);
       };
-
+      const orgId = await fkg.getAppItem("currOperatorId");
       let param;
       param = JSON.stringify({
         category1Id: this.props.cateid,
-        pageNo: 1
+        pageNo: 1,
+        orgId
       });
 
-      fkg.asyncHttpPost(
-        "/commodity/b2c/global/commodity/search",
-        param,
-        succ,
-        err
-      );
+      const mallType = await fkg.getAppItem("currMall");
+      const tradeType = await fkg.getAppItem("currType");
+      let uri = "";
+      if (fkg.G_MALL == mallType) {
+        if (fkg.B2B == tradeType) {
+          uri = `/commodity/b2b/global/commodity/search`;
+        } else if (fkg.B2C == tradeType) {
+          uri = `/commodity/b2c/global/commodity/search`;
+        }
+      } else if (fkg.R_MALL == mallType) {
+        if (fkg.B2B == tradeType) {
+          uri = `/commodity/b2b/region/commodity/search`;
+        } else if (fkg.B2C == tradeType) {
+          uri = `/commodity/b2c/region/commodity/search`;
+        }
+      }
+      fkg.asyncHttpPost(uri, param, succ, err);
     }
   }
 
@@ -109,7 +133,7 @@ class SecondarySpecificPage extends Component {
       </View>
     );
   };
-  onPressThirdButton = (item, isCate2) => {
+  onPressThirdButton = async (item, isCate2) => {
     if (isCate2) {
       const succ = result => {
         console.log(result.body);
@@ -121,20 +145,33 @@ class SecondarySpecificPage extends Component {
       const err = result => {
         alert(result);
       };
+      const orgId = await fkg.getAppItem("currOperatorId");
       let param;
       param = JSON.stringify({
-        category2Id: item.id
+        category2Id: item.id,
+        orgId,
+        pageNo: 1
       });
-
-      fkg.asyncHttpPost(
-        "/commodity/b2c/global/commodity/search",
-        param,
-        succ,
-        err
-      );
+      const mallType = await fkg.getAppItem("currMall");
+      const tradeType = await fkg.getAppItem("currType");
+      let uri = "";
+      if (fkg.G_MALL == mallType) {
+        if (fkg.B2B == tradeType) {
+          uri = `/commodity/b2b/global/commodity/search`;
+        } else if (fkg.B2C == tradeType) {
+          uri = `/commodity/b2c/global/commodity/search`;
+        }
+      } else if (fkg.R_MALL == mallType) {
+        if (fkg.B2B == tradeType) {
+          uri = `/commodity/b2b/region/commodity/search`;
+        } else if (fkg.B2C == tradeType) {
+          uri = `/commodity/b2c/region/commodity/search`;
+        }
+      }
+      fkg.asyncHttpPost(uri, param, succ, err);
     } else {
       const succ = result => {
-        console.log(result.body);
+        console.log(result);
         this.setState({
           commodity: result.body
         });
@@ -143,22 +180,35 @@ class SecondarySpecificPage extends Component {
       const err = result => {
         console.log(result);
       };
-
+      const orgId = await fkg.getAppItem("currOperatorId");
       let param;
       param = JSON.stringify({
-        category3Id: item
+        category3Id: item,
+        orgId
       });
-
-      fkg.asyncHttpPost(
-        "/commodity/b2c/global/commodity/search",
-        param,
-        succ,
-        err
-      );
+      const mallType = await fkg.getAppItem("currMall");
+      const tradeType = await fkg.getAppItem("currType");
+      let uri = "";
+      if (fkg.G_MALL == mallType) {
+        if (fkg.B2B == tradeType) {
+          uri = `/commodity/b2b/global/commodity/search`;
+        } else if (fkg.B2C == tradeType) {
+          uri = `/commodity/b2c/global/commodity/search`;
+        }
+      } else if (fkg.R_MALL == mallType) {
+        if (fkg.B2B == tradeType) {
+          uri = `/commodity/b2b/region/commodity/search`;
+        } else if (fkg.B2C == tradeType) {
+          uri = `/commodity/b2c/region/commodity/search`;
+        }
+      }
+      fkg.asyncHttpPost(uri, param, succ, err);
     }
   };
   renderCommodity = () => {
-    return <FloorSpecificDisplay data={this.state.commodity} />;
+    return (
+      <FloorSpecificDisplay data={this.state.commodity} mode={"display"} />
+    );
   };
   render() {
     return (

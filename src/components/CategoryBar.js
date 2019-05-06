@@ -87,7 +87,13 @@ class CategoryBar extends Component {
 
   getIcon = items => {
     return items.map(item => {
-      return <CategoryIcons data={item} navigation={this.props.navigation} />;
+      return (
+        <CategoryIcons
+          data={item}
+          key={JSON.stringify(item)}
+          navigation={this.props.navigation}
+        />
+      );
     });
   };
   //redirection is still to do.
@@ -97,7 +103,9 @@ class CategoryBar extends Component {
         <View style={styles.container}>
           <Grid>
             {this.state.data.map(items => {
-              return <Row>{this.getIcon(items)}</Row>;
+              return (
+                <Row key={JSON.stringify(items)}>{this.getIcon(items)}</Row>
+              );
             })}
           </Grid>
         </View>

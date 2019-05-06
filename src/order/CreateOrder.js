@@ -13,6 +13,7 @@ import {
 import AddressIcon from "../assets/addressIcon.jpg";
 import fkg from "../common/Util";
 import { Navigation } from "react-native-navigation";
+import util from "../common/Const";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -73,7 +74,8 @@ const styles = StyleSheet.create({
   fullPriceText: {
     fontSize: 26,
     fontWeight: "300",
-    color: "#d35800"
+    color: "#d35800",
+    flexDirection: "row"
   },
   commodityBar: {
     backgroundColor: "#fffcf2",
@@ -105,13 +107,13 @@ class CreateOrder extends Component {
     super(props);
   }
 
-  mockComm = [
-    { name: "qwe", price: 12 },
-    { name: "qwe", price: 12 },
-    { name: "qwe", price: 12 },
-    { name: "qwe", price: 12 },
-    { name: "qwe", price: 12 }
-  ];
+  // mockComm = [
+  //   { name: "qwe", price: 12 },
+  //   { name: "qwe", price: 12 },
+  //   { name: "qwe", price: 12 },
+  //   { name: "qwe", price: 12 },
+  //   { name: "qwe", price: 12 }
+  // ];
   state = {
     fullPrice: 0,
     deposit: "",
@@ -125,15 +127,30 @@ class CreateOrder extends Component {
     }
   };
   async componentWillMount() {
-    this.setState({ commodities: this.mockComm });
-    memberId = await fkg.getAppItem("currUserId");
-    console.log(memberId);
     console.log(this.props.data);
-    const succ = result => {
-      console.log(JSON.parse(result.body));
+    console.log(this.props.type);
+    memberId = await fkg.getAppItem("currUserId");
+    //
+
+    // console.log(memberId);
+    // console.log(this.props.data);
+    this.props.data.good.map(com => {
+      var price = this.state.fullPrice + com.price * com.quantity;
+      var p = Math.round(price * 100) / 100;
+      console.log(p);
       this.setState({
-        addresses: JSON.parse(result.body),
-        selectedAddress: JSON.parse(result.body)[0]
+        fullPrice: p
+      });
+    });
+    const succ = result => {
+      console.log(result);
+      if (!result.body[0]) {
+        util.toastLong("请添加地址");
+        return;
+      }
+      this.setState({
+        addresses: result.body,
+        selectedAddress: result.body[0]
       });
     };
 
@@ -145,8 +162,69 @@ class CreateOrder extends Component {
     fkg.asyncHttpPost("/sys/receipt/address/member/search", param, succ, err);
   }
   //redirection is still to do.
-  onConfirm = () => {
-    console.log("confirmed");
+  onConfirm = async () => {
+    const token = await fkg.getAppItem("token");
+    // console.log(this.state.selectedAddress);
+    let param, uri;
+    if (this.props.type === "b2b/global") {
+      uri = "/order/b2b/common/order/create";
+      param = {
+        b2bGlobalQty: this.props.data.quantity,
+        b2bGlobalSpecIds: this.props.data.specId,
+        depositAmount: this.state.deposit,
+        receiptAddressId: this.state.selectedAddress.id,
+        receiptRegionId: this.state.selectedAddress.regionId
+      };
+    } else if (this.props.type === "b2b/region") {
+      uri = "/order/b2b/common/order/create";
+      param = {
+        b2bRegionQty: this.props.data.quantity,
+        b2bRegionSpecIds: this.props.data.specId,
+        depositAmount: this.state.deposit,
+        receiptAddressId: this.state.selectedAddress.id,
+        receiptRegionId: this.state.selectedAddress.regionId
+      };
+    } else if (this.props.type === "b2c/global") {
+      uri = "/order/b2c/common/order/create";
+      param = {
+        b2cGlobalQty: this.props.data.quantity,
+        b2cGlobalSpecIds: this.props.data.specId,
+        depositAmount: this.state.deposit,
+        receiptAddressId: this.state.selectedAddress.id,
+        receiptRegionId: this.state.selectedAddress.regionId
+      };
+    } else if (this.props.type === "b2c/region") {
+      uri = "/order/b2c/common/order/create";
+      param = {
+        b2cRegionQty: this.props.data.quantity,
+        b2cRegionSpecIds: this.props.data.specId,
+        depositAmount: this.state.deposit,
+        receiptAddressId: this.state.selectedAddress.id,
+        receiptRegionId: this.state.selectedAddress.regionId
+      };
+    }
+    console.log(param);
+    console.log(uri);
+    const succ = result => {
+      console.log(result);
+      alert(result.message);
+      //  alert("in success");
+    };
+
+    const err = result => {
+      console.log(result);
+      alert(result);
+    };
+    console.log(uri);
+    console.log(param);
+    fkg.asyncHttpPost(
+      uri,
+      JSON.stringify(param),
+      succ,
+      err,
+      "application/json",
+      token
+    );
   };
   onChangeAddress = () => {
     //console.log("changing address");
@@ -167,7 +245,30 @@ class CreateOrder extends Component {
       <View style={{ flex: 1 }}>
         <TouchableOpacity
           onPress={() => {
-            console.log(this.props);
+            if (this.props.NotinShoppingCart) {
+              Navigation.push(this.props.componentId, {
+                //Use your stack Id instead of this.pros.componentId
+                component: {
+                  name: "ChooseAddressPage",
+                  passProps: {
+                    addresses: this.state.addresses,
+                    choose: this.ChooseAddress
+                  },
+                  options: {
+                    topBar: {
+                      visible: true,
+                      drawBehind: false,
+                      animate: false
+                    },
+                    bottomTabs: {
+                      visible: false,
+                      drawBehind: true,
+                      animate: true
+                    }
+                  }
+                }
+              });
+            }
             Navigation.push("ShoppingCart", {
               //Use your stack Id instead of this.pros.componentId
               component: {
@@ -227,14 +328,6 @@ class CreateOrder extends Component {
                 </View>
               );
             })}
-            <View style={styles.commoContainer}>
-              <View>
-                <Text>邮寄</Text>
-              </View>
-              <View>
-                <Text>&yen;{this.state.postage}</Text>
-              </View>
-            </View>
           </View>
         </ScrollView>
         <View style={styles.bottomBar}>
@@ -252,6 +345,7 @@ class CreateOrder extends Component {
               <Text style={styles.fullPriceText}>
                 &yen;{this.state.fullPrice}
               </Text>
+              <Text>(不含运费)</Text>
             </View>
             <TouchableWithoutFeedback onPress={this.onConfirm}>
               <View style={styles.confirm}>

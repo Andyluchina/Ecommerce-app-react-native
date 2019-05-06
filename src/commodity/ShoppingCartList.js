@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 import {
   Text,
   View,
@@ -11,15 +11,16 @@ import {
   ScrollView,
   TouchableHighlight,
   RefreshControl
-} from "react-native";
-import { Navigation } from "react-native-navigation";
-import util from "../common/Const";
-import HTTP from "../common/HTTPmethod";
-import fkg from "../common/Util";
+} from "react-native"
+import {Navigation} from "react-native-navigation"
+import util from "../common/Const"
+import HTTP from "../common/HTTPmethod"
+import fkg from "../common/Util"
+import NumericInput from "react-native-numeric-input"
 
 export default class ShoppingCartList extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     this.state = {
       count: 0,
@@ -28,102 +29,102 @@ export default class ShoppingCartList extends React.Component {
       data: [],
       checked: [],
       isRefreshing: false
-    };
+    }
   }
 
   componentDidMount() {
-    this.getData();
+    this.getData()
   }
 
   async getData() {
     try {
-      console.log(await fkg.getAppItem("currUserId"));
+      console.log(await fkg.getAppItem("currUserId"))
 
-      let type = "";
+      let type = ""
 
       if (this.props.type === "B2B全国") {
-        type = "b2b/global";
+        type = "b2b/global"
       } else if (this.props.type === "B2B地方") {
-        type = "b2b/region";
+        type = "b2b/region"
       } else if (this.props.type === "B2C全国") {
-        type = "b2c/global";
+        type = "b2c/global"
       } else if (this.props.type === "B2C地方") {
-        type = "b2c/region";
+        type = "b2c/region"
       }
 
       let formData = {
         memberId: await fkg.getAppItem("currUserId")
-      };
+      }
 
       let response = await HTTP._fetch(
         HTTP.GET({
           url: "/commodity/" + type + "/cart/search2",
           formData
         })
-      );
+      )
 
-      util.log(response);
+      util.log(response)
       if (response.status === 200) {
-        let responseJson = await response.json();
+        let responseJson = await response.json()
 
-        let body = responseJson.body;
-        let data = [];
+        let body = responseJson.body
+        let data = []
 
         Object.keys(body).forEach(key => {
           data.push({
             shopName: key,
             items: body[key]
-          });
-        });
+          })
+        })
 
-        let checked = this.getChecked(data);
+        let checked = this.getChecked(data)
         this.setState({
           data: data,
           checked: checked
-        });
-      } else util.toastLong("网络错误");
+        })
+      } else util.toastLong("网络错误")
     } catch (error) {
-      util.toastLong(error);
+      util.toastLong(error)
     }
 
-    this.getChecked();
+    this.getChecked()
   }
 
   getChecked(data) {
-    let checked = [];
+    let checked = []
     for (let i = 0; i < data.length; i++) {
-      let item = [];
+      let item = []
       for (let j = 0; j < data[i].items.length; j++) {
-        item.push(false);
+        item.push(false)
       }
-      checked.push({ all: false, item: item });
+      checked.push({all: false, item: item})
     }
 
-    return checked;
+    return checked
   }
 
   getSelectedItems() {
-    util.log(this.state.data);
-    let ids = [];
-    let specids = [];
-    let prices = [];
-    let names = [];
-    let quantitys = [];
-    let goods = [];
+    util.log(this.state.data)
+    let ids = []
+    let specids = []
+    let prices = []
+    let names = []
+    let quantitys = []
+    let goods = []
     for (let i = 0; i < this.state.data.length; i++) {
-      let item = [];
+      let item = []
       for (let j = 0; j < this.state.data[i].items.length; j++) {
         if (this.state.checked[i].item[j]) {
-          ids.push(this.state.data[i].items[j].id);
-          specids.push(this.state.data[i].items[j].specId);
-          prices.push(this.state.data[i].items[j].specPrice);
-          names.push(this.state.data[i].items[j].commodityName);
-          quantitys.push(this.state.data[i].items[j].quantity);
+          ids.push(this.state.data[i].items[j].id)
+          specids.push(this.state.data[i].items[j].specId)
+          prices.push(this.state.data[i].items[j].specPrice)
+          names.push(this.state.data[i].items[j].commodityName)
+          quantitys.push(this.state.data[i].items[j].quantity)
           goods.push({
             name: this.state.data[i].items[j].commodityName,
             quantity: this.state.data[i].items[j].quantity,
             price: this.state.data[i].items[j].specPrice
-          });
+          })
         }
       }
     }
@@ -135,22 +136,57 @@ export default class ShoppingCartList extends React.Component {
       quantity: quantitys,
       name: names,
       good: goods
-    };
+    }
   }
 
   async onRefresh() {
-    this.setState({ isRefreshing: true });
+    this.setState({isRefreshing: true})
     setTimeout(() => {
-      this.getData();
+      this.getData()
 
       //逻辑执行完之后，修改刷新状态为false
-      this.setState({ isRefreshing: false });
-    }, 2000);
+      this.setState({isRefreshing: false})
+    }, 2000)
+  }
+
+  async delete(id) {
+    try {
+      let type = ""
+
+      if (this.props.type === "B2B全国") {
+        type = "b2b/global"
+      } else if (this.props.type === "B2B地方") {
+        type = "b2b/region"
+      } else if (this.props.type === "B2C全国") {
+        type = "b2c/global"
+      } else if (this.props.type === "B2C地方") {
+        type = "b2c/region"
+      }
+
+      let ids = []
+      ids.push(id)
+      let formData = ids
+
+      let response = await HTTP._fetch(
+        HTTP.POST({
+          url: "/commodity/" + type + "/cart/delete",
+          formData
+        })
+      )
+
+      if (response.status === 200) {
+        util.log('删除成功')
+      } else util.toastLong("网络错误")
+    } catch (error) {
+      util.toastLong(error)
+    }
+
+    this.getData()
   }
 
   render() {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={{flex: 1}}>
         <ScrollView
           refreshControl={
             <RefreshControl
@@ -160,39 +196,39 @@ export default class ShoppingCartList extends React.Component {
               title={this.state.isRefreshing ? "刷新中...." : "下拉刷新"}
             />
           }
-          style={{ backgroundColor: util.backgroundColor }}
+          style={{backgroundColor: util.backgroundColor}}
         >
           {this.state.data.map((item, index) => (
             <View style={styles.contentBar}>
               <View>
                 <View style={styles.contentItem}>
                   <TouchableHighlight
-                    style={{ flexDirection: "row", flex: 1, padding: 0 }}
+                    style={{flexDirection: "row", flex: 1, padding: 0}}
                     onPress={() => {
-                      let checked = this.state.checked;
-                      checked[index].all = !checked[index].all;
+                      let checked = this.state.checked
+                      checked[index].all = !checked[index].all
                       if (checked[index].all) {
                         for (let j = 0; j < checked[index].item.length; j++) {
-                          checked[index].item[j] = true;
+                          checked[index].item[j] = true
                         }
                       } else {
                         for (let j = 0; j < checked[index].item.length; j++) {
-                          checked[index].item[j] = false;
+                          checked[index].item[j] = false
                         }
                       }
 
-                      let newCheck = [];
+                      let newCheck = []
                       for (let i = 0; i < checked.length; i++) {
-                        newCheck.push(checked[i]);
+                        newCheck.push(checked[i])
                       }
 
                       this.setState({
                         checked: newCheck
-                      });
+                      })
                     }}
                     underlayColor="transparent"
                   >
-                    <View style={{ flexDirection: "row", flex: 1 }}>
+                    <View style={{flexDirection: "row", flex: 1}}>
                       {this.state.checked[index].all ? (
                         <Image
                           source={require("./../assets/ic_check_box.png")}
@@ -203,7 +239,7 @@ export default class ShoppingCartList extends React.Component {
                         />
                       )}
 
-                      <Text style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={{flex: 1, marginLeft: 10}}>
                         {item.shopName}
                       </Text>
                     </View>
@@ -212,65 +248,103 @@ export default class ShoppingCartList extends React.Component {
               </View>
               {item.items.map((item1, i) => (
                 <TouchableHighlight
-                  style={{ flexDirection: "row", padding: 2, marginLeft: 30 }}
+                  style={{flexDirection: "row", padding: 2, marginLeft: 30}}
                   onPress={() => {
-                    let newChecked = this.state.checked;
-                    newChecked[index].item[i] = !newChecked[index].item[i];
+                    let newChecked = this.state.checked
+                    newChecked[index].item[i] = !newChecked[index].item[i]
 
                     // 判断是否全选或者取消
-                    let change = true;
+                    let change = true
                     for (let j = 0; j < newChecked[index].item.length; j++) {
                       if (
                         newChecked[index].item[i] !== newChecked[index].item[j]
                       ) {
-                        change = false;
-                        break;
+                        change = false
+                        break
                       }
                     }
                     if (change) {
-                      newChecked[index].all = newChecked[index].item[i];
+                      newChecked[index].all = newChecked[index].item[i]
                     }
 
                     this.setState({
                       checked: newChecked
-                    });
+                    })
                   }}
                   underlayColor="transparent"
                 >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flex: 1,
-                      alignItems: "flex-start"
-                    }}
-                  >
-                    {this.state.checked[index].item[i] ? (
-                      <Image source={require("./../assets/ic_check_box.png")} />
-                    ) : (
-                      <Image
-                        source={require("./../assets/ic_check_box_outline_blank.png")}
-                      />
-                    )}
+                  <View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        flex: 1,
+                        alignItems: "flex-start"
+                      }}
+                    >
+                      {this.state.checked[index].item[i] ? (
+                        <Image source={require("./../assets/ic_check_box.png")}/>
+                      ) : (
+                        <Image
+                          source={require("./../assets/ic_check_box_outline_blank.png")}
+                        />
+                      )}
 
-                    <Text
-                      style={{
-                        marginLeft: 10,
-                        marginTop: 3,
-                        width: util.width / 2
-                      }}
-                    >
-                      {item1.commodityName}
-                    </Text>
-                    <Text
-                      style={{
-                        marginLeft: 10,
-                        marginTop: 3,
-                        textAlign: "right",
-                        width: util.width / 4 - 20
-                      }}
-                    >
-                      {item1.specPrice} 元 ✖️ {item1.quantity}
-                    </Text>
+                      <Text
+                        style={{
+                          marginLeft: 10,
+                          marginTop: 3,
+                          width: util.width / 2
+                        }}
+                      >
+                        {item1.commodityName}
+                      </Text>
+                    </View>
+                    <View style={{flexDirection: 'row', alignItems: 'flex-end'}}>
+                      <Text
+                        style={{
+                          marginRight: 5,
+                          marginTop: 3,
+                          textAlign: "right",
+                          fontSize: 20,
+                          paddingBottom: 10,
+                          width: util.width / 2 - 35
+                        }}
+                      >
+                        {item1.specPrice} 元 *
+                      </Text>
+                      <NumericInput
+                        minValue={0}
+                        value={item1.quantity}
+                        initValue={item1.quantity}
+                        onChange={value => {
+                          util.log(value)
+
+                          let temp = this.state.data
+                          temp[index].items[i].quantity = value
+                          this.setState({
+                            data: temp
+                          })
+                        }}
+                      />
+                      <TouchableOpacity
+                        // style={{width: util.width - 50}}
+                        onPress={() => {
+                          this.delete(item1.id)
+                        }}
+                      >
+                        <Text style={{
+                          color: "#414141",
+                          textAlign: "right",
+                          marginRight: 20,
+                          marginTop: 10,
+                          marginLeft: 10,
+                          marginBottom: 10,
+                          fontSize: 15,
+                        }}>
+                          删除
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </TouchableHighlight>
               ))}
@@ -280,26 +354,26 @@ export default class ShoppingCartList extends React.Component {
         <View>
           <TouchableOpacity
             onPress={() => {
-              let result = this.getSelectedItems();
+              let result = this.getSelectedItems()
 
-              let type = "";
+              let type = ""
 
               if (this.props.type === "B2B全国") {
-                type = "b2b/global";
+                type = "b2b/global"
               } else if (this.props.type === "B2B地方") {
-                type = "b2b/region";
+                type = "b2b/region"
               } else if (this.props.type === "B2C全国") {
-                type = "b2c/global";
+                type = "b2c/global"
               } else if (this.props.type === "B2C地方") {
-                type = "b2c/region";
+                type = "b2c/region"
               }
 
               //跳转到结算界面
               if (result.id.length === 0) {
-                util.toastLong("请选择下单商品后提交");
+                util.toastLong("请选择下单商品后提交")
               } else {
                 if (this.props.NotinShoppingCart) {
-                  this.props.CreateOrder(result, type);
+                  this.props.CreateOrder(result, type)
                 } else {
                   Navigation.push("ShoppingCart", {
                     component: {
@@ -321,7 +395,7 @@ export default class ShoppingCartList extends React.Component {
                         }
                       }
                     }
-                  });
+                  })
                 }
               }
             }}
@@ -332,7 +406,7 @@ export default class ShoppingCartList extends React.Component {
           </TouchableOpacity>
         </View>
       </View>
-    );
+    )
   }
 }
 
@@ -426,4 +500,4 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 15
   }
-});
+})

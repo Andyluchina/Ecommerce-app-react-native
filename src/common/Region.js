@@ -170,6 +170,7 @@ class Region extends Component {
       return this.state.displayData.map(item => {
         return (
           <View
+            key={JSON.stringify(item)}
             style={{
               marginLeft: 5,
               marginRight: 5,
@@ -190,6 +191,7 @@ class Region extends Component {
       return this.state.displayData.map(item => {
         return (
           <View
+            key={JSON.stringify(item)}
             style={{
               marginLeft: 5,
               marginRight: 5,
@@ -224,6 +226,7 @@ class Region extends Component {
     });
     await fkg.setAppItem("currMall", fkg.G_MALL);
     await fkg.setAppItem("regionName", this.state.currRegion);
+    await fkg.setAppItem("currOperatorId", 8);
     const res = await this.getData("8");
     this.setState({ displayData: res.body, selectState: 1 });
     goToMain();

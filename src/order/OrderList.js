@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react";
 import {
   Text,
   View,
@@ -9,15 +9,15 @@ import {
   FlatList,
   DeviceEventEmitter,
   ScrollView
-} from "react-native"
+} from "react-native";
 
-import util from "../common/Const"
-import HTTP from "../common/HTTPmethod"
-import fkg from "../common/Util"
+import util from "../common/Const";
+import HTTP from "../common/HTTPmethod";
+import fkg from "../common/Util";
 
 export default class OrderList extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       data: [
@@ -46,32 +46,32 @@ export default class OrderList extends React.Component {
           orgId: "0"
         }
       ]
-    }
+    };
   }
 
   componentDidMount() {
-    this.getData()
+    this.getData();
   }
 
   async getData() {
     try {
-      let formData = {}
+      let formData = {};
       if (!this.props.navigation.status === undefined)
         formData = {
           status: this.props.navigation.status,
           memberId: await fkg.getAppItem("currUserId")
-        }
+        };
 
-      let type = ""
+      let type = "";
 
       if (this.props.navigation.orderType === "B2B全国订单") {
-        type = "b2b/global"
+        type = "b2b/global";
       } else if (this.props.navigation.orderType === "B2B地方订单") {
-        type = "b2b/region"
+        type = "b2b/region";
       } else if (this.props.navigation.orderType === "B2C全国订单") {
-        type = "b2c/global"
+        type = "b2c/global";
       } else if (this.props.navigation.orderType === "B2C地方订单") {
-        type = "b2c/region"
+        type = "b2c/region";
       }
 
       let response = await HTTP._fetch(
@@ -79,17 +79,17 @@ export default class OrderList extends React.Component {
           url: "/order/" + type + "/order/search",
           formData
         })
-      )
+      );
 
       if (response.status === 200) {
-        let responseJson = await response.json()
+        let responseJson = await response.json();
 
         this.setState({
           data: responseJson.body
-        })
-      } else util.toastLong("网络错误")
+        });
+      } else util.toastLong("网络错误");
     } catch (error) {
-      util.toastLong(error)
+      util.toastLong(error);
     }
   }
 
@@ -117,21 +117,12 @@ export default class OrderList extends React.Component {
           <View style={styles.row}>
             <View style={styles.contentItem}>
               <Text style={styles.content}>创建时间</Text>
-              <Text style={{fontSize: 15, color: "#453E3E"}}>
+              <Text style={{ fontSize: 15, color: "#453E3E" }}>
                 {item.createTime}
               </Text>
             </View>
-            {/*<Image style={styles.icon}*/}
-            {/*source={{uri: item.img}}/>*/}
-            {/*<View style={styles.infoView}>*/}
-            {/*<Text allowFontScaling={false} style={styles.infoName}>{item.goodName}</Text>*/}
-
-            {/*<View style={styles.infoTextView}>*/}
-            {/*<Text allowFontScaling={false} style={{color: '#696969', textAlign: 'right'}}>{item.totalAmount}元</Text>*/}
-            {/*</View>*/}
-            {/*</View>*/}
           </View>
-          <View style={[styles.row, {justifyContent: "flex-end"}]}>
+          <View style={[styles.row, { justifyContent: "flex-end" }]}>
             <Text
               allowFontScaling={false}
               style={[
@@ -147,23 +138,23 @@ export default class OrderList extends React.Component {
           </View>
         </View>
       </TouchableOpacity>
-    )
+    );
   }
 
   render() {
     return (
       <View>
         <ScrollView
-          style={{height: util.height, backgroundColor: util.backgroundColor}}
+          style={{ height: util.height, backgroundColor: util.backgroundColor }}
         >
           <FlatList
             data={this.state.data}
-            renderItem={({item}) => <View>{this.renderItem(item)}</View>}
+            renderItem={({ item }) => <View>{this.renderItem(item)}</View>}
             keyExtractor={(item, index) => index + ""}
           />
         </ScrollView>
       </View>
-    )
+    );
   }
 }
 
@@ -241,4 +232,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: -10
   }
-})
+});

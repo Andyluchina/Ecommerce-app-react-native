@@ -19,6 +19,10 @@ import {
   DefaultTabBar,
   ScrollableTabBar
 } from "@valdio/react-native-scrollable-tabview";
+// import ScrollableTabView, {
+//   ScrollableTabBar
+// } from "react-native-scrollable-tab-view";
+import util from "../common/Const";
 import SecondarySpecificPage from "./SecondarySpecificPage";
 
 class SecondaryCategoryPage extends Component {
@@ -46,7 +50,9 @@ class SecondaryCategoryPage extends Component {
   componentWillMount() {
     //fetch data
     const succ = result => {
-      this.setState({ secondaryCate: result.body });
+      const list = ["second"].concat(result.body);
+
+      this.setState({ secondaryCate: list });
       // console.log(result.body);
     };
 
@@ -61,8 +67,36 @@ class SecondaryCategoryPage extends Component {
   state = {
     secondaryCate: []
   };
-
-  render() {
+  // renderPages = () => {
+  //   var list = [];
+  //   this.state.secondaryCate.map(item => {
+  //     list.push(
+  //       <SecondarySpecificPage
+  //         tabLabel={item.categorySimpleName}
+  //         cateid={item}
+  //       />
+  //     );
+  //     console.log(list);
+  //     return list;
+  //   });
+  // };
+  renderScroll = () => {
+    // if (this.state.secondaryCate === []) {
+    //   return (
+    //     <ScrollableTabView
+    //       style={{ marginTop: 0 }}
+    //       initialPage={0}
+    //       renderTabBar={() => <ScrollableTabBar />}
+    //     >
+    //       <SecondarySpecificPage
+    //         tabLabel={"精选"}
+    //         cateid={this.props.data.id}
+    //         main={true}
+    //       />
+    //     </ScrollableTabView>
+    //   );
+    // } else {
+    //  var list = this.renderPages();
     return (
       <ScrollableTabView
         style={{ marginTop: 0 }}
@@ -70,7 +104,7 @@ class SecondaryCategoryPage extends Component {
         renderTabBar={() => <ScrollableTabBar />}
       >
         <SecondarySpecificPage
-          tabLabel="精选"
+          tabLabel={"精选"}
           cateid={this.props.data.id}
           main={true}
         />
@@ -84,7 +118,55 @@ class SecondaryCategoryPage extends Component {
         })}
       </ScrollableTabView>
     );
+    // }
+  };
+  render() {
+    // return this.renderScroll();
+    if (!this.state.secondaryCate[0]) {
+      console.log("here");
+      return <View />;
+    }
+    return (
+      <ScrollableTabView
+        style={{ marginTop: 0 }}
+        initialPage={0}
+        renderTabBar={() => <ScrollableTabBar />}
+      >
+        {this.state.secondaryCate.map(item => {
+          if (item === "second") {
+            return (
+              <SecondarySpecificPage
+                tabLabel={"精选"}
+                cateid={this.props.data.id}
+                main={true}
+              />
+            );
+          } else {
+            return (
+              <SecondarySpecificPage
+                tabLabel={item.categorySimpleName}
+                cateid={item}
+              />
+            );
+          }
+        })}
+      </ScrollableTabView>
+    );
   }
 }
 
 export default SecondaryCategoryPage;
+
+// <SecondarySpecificPage
+//   tabLabel="精选"
+//   cateid={this.props.data.id}
+//   main={true}
+// />
+// {this.state.secondaryCate.map(item => {
+//   return (
+//     <SecondarySpecificPage
+//       tabLabel={item.categorySimpleName}
+//       cateid={item}
+//     />
+//   );
+// })}

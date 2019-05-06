@@ -31,6 +31,7 @@ class SearchSpecific extends Component {
   async componentWillMount() {
     const mallType = await fkg.getAppItem("currMall");
     const tradeType = await fkg.getAppItem("currType");
+    const orgId = await fkg.getAppItem("currOperatorId");
     let uri = "";
     if (fkg.G_MALL == mallType) {
       if (fkg.B2B == tradeType) {
@@ -56,7 +57,8 @@ class SearchSpecific extends Component {
     };
     const param = JSON.stringify({
       commodityName: this.props.data,
-      pageNo: 1
+      pageNo: 1,
+      orgId
     });
 
     fkg.asyncHttpPost(uri, param, succ, err);

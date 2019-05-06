@@ -17,11 +17,12 @@ import Carousel from "react-native-snap-carousel";
 import fkg from "../common/Util";
 import CommoditySpecificPageBottomIcons from "../common/CommoditySpecificPageBottomIcons";
 import WebViewCommo from "./WebViewCommo";
-import {
-  ScrollableTabView,
-  DefaultTabBar,
-  ScrollableTabBar
-} from "@valdio/react-native-scrollable-tabview";
+import ScrollableTabView from "react-native-scrollable-tab-view";
+// import {
+//   ScrollableTabView,
+//   DefaultTabBar,
+//   ScrollableTabBar
+// } from "@valdio/react-native-scrollable-tabview";
 import CommodityDisplay from "./CommodityDisplay";
 var _ = require("lodash");
 import support from "../assets/support.png";
@@ -250,7 +251,7 @@ class CommoditySpecificPage extends Component {
 
   onConfirm = async () => {
     this.setState({ overLayVisible: false, mode: "" });
-
+    console.log(this.state.selectedSpec);
     //do some operation
     // 加入购物车
     // TODO cytpe
@@ -370,14 +371,15 @@ class CommoditySpecificPage extends Component {
           quantity={this.state.value}
           onChangeDisplay={this.onChangeDisplay}
           specsMap={this.state.specsMap}
+          selectedSpec={this.state.selectedSpec}
         />
       );
     } else {
       return (
         <ScrollableTabView
-          style={{ marginTop: 0 }}
-          initialPage={0}
-          renderTabBar={() => <ScrollableTabBar />}
+          tabBarActiveTextColor={util.headerColor}
+          tabBarUnderlineStyle={{ backgroundColor: util.headerColor }}
+          tabBarPosition={"top"}
         >
           <WebViewCommo
             tabLabel="商品详情"
@@ -514,7 +516,7 @@ class CommoditySpecificPage extends Component {
     return value.map(item => {
       if (item.vi === this.state.specSelected[key]) {
         return (
-          <View style={styles.specSelectedContainer}>
+          <View style={styles.specSelectedContainer} key={JSON.stringify(item)}>
             <TouchableOpacity
               onPress={event => {
                 var s = this.state.specSelected;
@@ -522,6 +524,7 @@ class CommoditySpecificPage extends Component {
                 this.setState({
                   specSelected: s
                 });
+                this.updateSelectedSpecs();
               }}
             >
               <Text style={{ color: "#ff7e28", fontSize: 17 }}>{item.v}</Text>
@@ -530,7 +533,7 @@ class CommoditySpecificPage extends Component {
         );
       } else {
         return (
-          <View style={styles.specContainer}>
+          <View style={styles.specContainer} key={JSON.stringify(item)}>
             <TouchableOpacity
               onPress={event => {
                 var s = this.state.specSelected;
@@ -538,6 +541,7 @@ class CommoditySpecificPage extends Component {
                 this.setState({
                   specSelected: s
                 });
+                this.updateSelectedSpecs();
               }}
             >
               <Text style={{ fontSize: 17 }}>{item.v}</Text>
@@ -546,6 +550,29 @@ class CommoditySpecificPage extends Component {
         );
       }
     });
+  };
+
+  updateSelectedSpecs = () => {
+    var i;
+    for (i = 0; i < this.state.specs.length; i++) {
+      const s = JSON.parse(this.state.specs[i].specValues);
+      if (this.compareSpec(s)) {
+        this.setState({
+          selectedSpec: this.state.specs[i]
+        });
+        return;
+      }
+    }
+  };
+  compareSpec = s => {
+    // const keys = Object.keys(this.state.specSelected);
+    var i;
+    for (i = 0; i < s.length; i++) {
+      if (s[i].vi !== this.state.specSelected[s[i].ni]) {
+        return false;
+      }
+    }
+    return true;
   };
 }
 

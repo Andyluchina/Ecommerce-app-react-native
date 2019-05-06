@@ -43,6 +43,10 @@ class WelcomeScreen extends Component {
     if (!res2) {
       await fkg.setAppItem("regionName", "全国");
     }
+    const res3 = await fkg.getAppItem("currMall");
+    if (!res3) {
+      await fkg.setAppItem("currOperatorId", fkg.HQ_ID);
+    }
     setTimeout(async function() {
       const user = await fkg.getAppItem("token");
       console.log("user: ", user);

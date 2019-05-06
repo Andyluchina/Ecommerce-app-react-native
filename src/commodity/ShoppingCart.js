@@ -53,7 +53,8 @@ export default class ShoppingCart extends React.Component {
         name: "CreateOrder",
         passProps: {
           data: result,
-          type: type
+          type: type,
+          NotinShoppingCart: true
         },
         options: {
           topBar: {
